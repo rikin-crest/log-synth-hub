@@ -35,10 +35,10 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
   };
 
   const handleSubmit = () => {
-    if (!productName || !logType || !fileName) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
+    // if (!productName || !logType || !fileName) {
+    //   toast.error('Please fill in all required fields');
+    //   return;
+    // }
 
     onSubmit({
       productName,
