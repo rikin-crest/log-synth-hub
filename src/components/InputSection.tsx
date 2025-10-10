@@ -58,7 +58,7 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
         border: '1px solid hsl(var(--border))',
       }}
     >
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
           <AutoAwesome sx={{ mr: 1, color: 'primary.main' }} />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -66,7 +66,7 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, flexGrow: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, flexGrow: 1, overflow: 'auto', pr: 1 }}>
           <FormControl fullWidth>
             <InputLabel>Product Name *</InputLabel>
             <Select

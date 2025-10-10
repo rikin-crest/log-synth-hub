@@ -33,8 +33,8 @@ const FeedbackSection = ({ onRerun, onConfGenerate, disabled }: FeedbackSectionP
         border: '1px solid hsl(var(--border))',
       }}
     >
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, flexShrink: 0 }}>
           <Feedback sx={{ mr: 1, color: 'primary.main' }} />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Feedback & Actions
@@ -51,13 +51,20 @@ const FeedbackSection = ({ onRerun, onConfGenerate, disabled }: FeedbackSectionP
           disabled={disabled}
           sx={{
             mb: 3,
+            flexGrow: 1,
+            overflow: 'auto',
             '& .MuiOutlinedInput-root': {
               backgroundColor: disabled ? 'hsl(var(--muted) / 0.2)' : 'white',
+              height: '100%',
+              alignItems: 'flex-start',
+            },
+            '& .MuiOutlinedInput-input': {
+              overflow: 'auto !important',
             },
           }}
         />
 
-        <Box sx={{ display: 'flex', gap: 2, mt: 'auto' }}>
+        <Box sx={{ display: 'flex', gap: 2, flexShrink: 0 }}>
           <Button
             fullWidth
             variant="outlined"

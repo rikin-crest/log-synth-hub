@@ -42,8 +42,8 @@ const MappingTable = ({ data }: MappingTableProps) => {
         border: '1px solid hsl(var(--border))',
       }}
     >
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 0 }}>
-        <Box sx={{ px: 3, pt: 3, pb: 2, display: 'flex', alignItems: 'center' }}>
+      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 0, overflow: 'hidden' }}>
+        <Box sx={{ px: 3, pt: 3, pb: 2, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
           <TableChart sx={{ mr: 1, color: 'primary.main' }} />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Mapping Sheet
@@ -58,7 +58,7 @@ const MappingTable = ({ data }: MappingTableProps) => {
           )}
         </Box>
 
-        <TableContainer sx={{ flexGrow: 1, px: 3, pb: 3 }}>
+        <TableContainer sx={{ flexGrow: 1, px: 3, pb: 3, overflow: 'auto', minHeight: 0 }}>
           {data.length === 0 ? (
             <Box
               sx={{

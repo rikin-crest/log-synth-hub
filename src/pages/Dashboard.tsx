@@ -110,33 +110,33 @@ const Dashboard = () => {
       </AppBar>
 
       {/* Main Content */}
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: 4, height: 'calc(100vh - 88px)', overflow: 'hidden' }}>
         <Box
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
             gridTemplateRows: { xs: 'auto', lg: '1fr 1fr' },
             gap: 3,
-            height: { xs: 'auto', lg: 'calc(100vh - 140px)' },
+            height: '100%',
           }}
         >
           {/* Top Left - Input Section */}
-          <Box>
+          <Box sx={{ overflow: 'hidden', minHeight: 0 }}>
             <InputSection onSubmit={handleGenerateMappings} isProcessing={isProcessing} />
           </Box>
 
           {/* Top Right - Mapping Table */}
-          <Box>
+          <Box sx={{ overflow: 'hidden', minHeight: 0 }}>
             <MappingTable data={mappingData} />
           </Box>
 
           {/* Bottom Left - Chain of Thoughts */}
-          <Box>
+          <Box sx={{ overflow: 'hidden', minHeight: 0 }}>
             <ChainOfThoughts steps={thoughtSteps} isProcessing={isProcessing} />
           </Box>
 
           {/* Bottom Right - Feedback Section */}
-          <Box>
+          <Box sx={{ overflow: 'hidden', minHeight: 0 }}>
             <FeedbackSection
               onRerun={handleRerun}
               onConfGenerate={handleConfGenerate}
