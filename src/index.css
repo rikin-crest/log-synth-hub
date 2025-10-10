@@ -27,7 +27,7 @@ All colors MUST be HSL.
     --secondary: 220 70% 55%;
     --secondary-foreground: 0 0% 100%;
     --secondary-light: 220 70% 65%;
-    
+
     --accent: 280 75% 65%;
     --accent-foreground: 0 0% 100%;
 
@@ -132,15 +132,24 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    overflow: hidden;
   }
 
   /* Gradient backgrounds */
   .gradient-ai {
-    background: linear-gradient(135deg, hsl(var(--ai-gradient-start)), hsl(var(--ai-gradient-end)));
+    background: linear-gradient(
+      135deg,
+      hsl(var(--ai-gradient-start)),
+      hsl(var(--ai-gradient-end))
+    );
   }
 
   .gradient-ai-subtle {
-    background: linear-gradient(135deg, hsl(var(--ai-gradient-start) / 0.1), hsl(var(--ai-gradient-end) / 0.1));
+    background: linear-gradient(
+      135deg,
+      hsl(var(--ai-gradient-start) / 0.1),
+      hsl(var(--ai-gradient-end) / 0.1)
+    );
   }
 
   /* Glow effects */
@@ -150,7 +159,8 @@ All colors MUST be HSL.
 
   /* Animations */
   @keyframes pulse-glow {
-    0%, 100% {
+    0%,
+    100% {
       box-shadow: 0 0 20px hsl(var(--ai-glow) / 0.3);
     }
     50% {
@@ -214,47 +224,47 @@ All colors MUST be HSL.
   }
 
   [data-sonner-toast][data-type="success"] {
-    background: hsl(var(--ai-success) / 0.1) !important;
+    background: hsl(var(--ai-success)) !important;
     border-color: hsl(var(--ai-success)) !important;
-    color: hsl(var(--ai-success)) !important;
+    color: white !important;
   }
 
   [data-sonner-toast][data-type="success"] [data-icon] {
-    color: hsl(var(--ai-success)) !important;
+    color: white !important;
   }
 
   [data-sonner-toast][data-type="error"] {
-    background: hsl(var(--destructive) / 0.1) !important;
+    background: hsl(var(--destructive)) !important;
     border-color: hsl(var(--destructive)) !important;
-    color: hsl(var(--destructive)) !important;
+    color: white !important;
   }
 
   [data-sonner-toast][data-type="error"] [data-icon] {
-    color: hsl(var(--destructive)) !important;
+    color: white !important;
   }
 
   [data-sonner-toast][data-type="info"] {
-    background: hsl(var(--secondary) / 0.1) !important;
+    background: hsl(var(--secondary)) !important;
     border-color: hsl(var(--secondary)) !important;
-    color: hsl(var(--secondary)) !important;
+    color: white !important;
   }
 
   [data-sonner-toast][data-type="info"] [data-icon] {
-    color: hsl(var(--secondary)) !important;
+    color: white !important;
   }
 
   [data-sonner-toast][data-type="warning"] {
-    background: hsl(var(--ai-warning) / 0.1) !important;
+    background: hsl(var(--ai-warning)) !important;
     border-color: hsl(var(--ai-warning)) !important;
-    color: hsl(var(--ai-warning)) !important;
+    color: white !important;
   }
 
   [data-sonner-toast][data-type="warning"] [data-icon] {
-    color: hsl(var(--ai-warning)) !important;
+    color: white !important;
   }
 
   [data-sonner-toast] [data-title],
   [data-sonner-toast] [data-description] {
-    color: inherit !important;
+    color: white !important;
   }
 }

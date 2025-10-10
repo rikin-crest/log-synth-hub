@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,9 +11,14 @@ import {
   FormControl,
   InputLabel,
   InputAdornment,
-} from '@mui/material';
-import { CloudUpload, AutoAwesome, Category, Description } from '@mui/icons-material';
-import { toast } from 'sonner';
+} from "@mui/material";
+import {
+  CloudUpload,
+  AutoAwesome,
+  Category,
+  Description,
+} from "@mui/icons-material";
+import { toast } from "sonner";
 
 interface InputSectionProps {
   onSubmit: (data: any) => void;
@@ -21,10 +26,10 @@ interface InputSectionProps {
 }
 
 const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
-  const [productName, setProductName] = useState('');
-  const [logCategory, setLogCategory] = useState('');
-  const [logType, setLogType] = useState('');
-  const [fileName, setFileName] = useState('');
+  const [productName, setProductName] = useState("");
+  const [logCategory, setLogCategory] = useState("");
+  const [logType, setLogType] = useState("");
+  const [fileName, setFileName] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,22 +56,40 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
   return (
     <Card
       sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 1))',
-        border: '1px solid hsl(var(--border))',
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        background:
+          "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 1))",
+        border: "1px solid hsl(var(--border))",
       }}
     >
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <AutoAwesome sx={{ mr: 1, color: 'primary.main' }} />
+      <CardContent
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+          <AutoAwesome sx={{ mr: 1, color: "primary.main" }} />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Input Configuration
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, flexGrow: 1, overflow: 'auto', pr: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 2.5,
+            flexGrow: 1,
+            overflow: "auto",
+            pr: 1,
+            pt: 1,
+          }}
+        >
           <FormControl fullWidth>
             <InputLabel>Product Name *</InputLabel>
             <Select
@@ -109,19 +132,28 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
               startIcon={<CloudUpload />}
               sx={{
                 py: 2,
-                borderStyle: 'dashed',
+                borderStyle: "dashed",
                 borderWidth: 2,
-                '&:hover': {
-                  borderStyle: 'dashed',
+                "&:hover": {
+                  borderStyle: "dashed",
                   borderWidth: 2,
                 },
               }}
             >
-              {fileName || 'Upload Log File *'}
-              <input type="file" hidden onChange={handleFileChange} accept=".json,.xml,.log,.txt" />
+              {fileName || "Upload Log File *"}
+              <input
+                type="file"
+                hidden
+                onChange={handleFileChange}
+                accept=".json,.xml,.log,.txt"
+              />
             </Button>
             {fileName && (
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 1, display: "block" }}
+              >
                 Selected: {fileName}
               </Typography>
             )}
@@ -147,17 +179,19 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
             onClick={handleSubmit}
             disabled={isProcessing}
             sx={{
-              mt: 'auto',
+              mt: "auto",
               py: 1.5,
-              fontSize: '1rem',
+              fontSize: "1rem",
               fontWeight: 600,
-              background: 'linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))',
-              '&:hover': {
-                background: 'linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))',
+              background:
+                "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
+              "&:hover": {
+                background:
+                  "linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))",
               },
             }}
           >
-            {isProcessing ? 'Generating...' : 'Generate Mappings'}
+            {isProcessing ? "Generating..." : "Generate Mappings"}
           </Button>
         </Box>
       </CardContent>

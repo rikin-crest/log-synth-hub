@@ -43,13 +43,12 @@ const Dashboard = () => {
       "Finalizing mapping schema...",
     ];
 
-    let currentStep = 0;
-    const interval = setInterval(() => {
-      if (currentStep < thoughts.length) {
-        setThoughtSteps((prev) => [...prev, thoughts[currentStep]]);
-        currentStep++;
+    const runStep = (index: number) => {
+      if (index < thoughts.length) {
+        setThoughtSteps((prev) => [...prev, thoughts[index]]);
+        setTimeout(() => runStep(index + 1), 800);
       } else {
-        clearInterval(interval);
+        // Done processing
         setIsProcessing(false);
 
         const sampleData = Array.from({ length: 35 }, (_, i) => ({
@@ -66,7 +65,10 @@ const Dashboard = () => {
         setMappingData(sampleData);
         toast.success("Mappings generated successfully!");
       }
-    }, 800);
+    };
+
+    // Start the chain
+    runStep(0);
   };
 
   const handleRerun = () => {
@@ -121,7 +123,7 @@ const Dashboard = () => {
           }}
         >
           {/* Left - Input Section */}
-          <Box sx={{ height: "450px", width: 1 / 3, flexShrink: 0 }}>
+          <Box sx={{ height: "460px", width: 1 / 3, flexShrink: 0 }}>
             <InputSection
               onSubmit={handleGenerateMappings}
               isProcessing={isProcessing}
@@ -129,7 +131,7 @@ const Dashboard = () => {
           </Box>
 
           {/* Right - Mapping Table */}
-          <Box sx={{ height: "450px", overflow: "auto", width: "100%" }}>
+          <Box sx={{ height: "460px", overflow: "visible", width: "100%" }}>
             <MappingTable data={mappingData} />
           </Box>
         </Box>
@@ -154,7 +156,7 @@ const Dashboard = () => {
           </Box>
 
           {/* Right - Feedback Section */}
-          <Box sx={{ height: "380px", overflow: "auto", width: "100%" }}>
+          <Box sx={{ height: "380px", overflow: "visible", width: "100%" }}>
             <FeedbackSection
               onRerun={handleRerun}
               onConfGenerate={handleConfGenerate}

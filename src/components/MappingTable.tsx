@@ -11,8 +11,8 @@ import {
   TableRow,
   Chip,
   Tooltip,
-} from '@mui/material';
-import { TableChart, Circle } from '@mui/icons-material';
+} from "@mui/material";
+import { TableChart, Circle } from "@mui/icons-material";
 
 interface MappingTableProps {
   data: any[];
@@ -21,30 +21,48 @@ interface MappingTableProps {
 const MappingTable = ({ data }: MappingTableProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'mapped':
-        return 'success';
-      case 'pending':
-        return 'warning';
-      case 'conflict':
-        return 'error';
+      case "mapped":
+        return "success";
+      case "pending":
+        return "warning";
+      case "conflict":
+        return "error";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   return (
     <Card
       sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 1))',
-        border: '1px solid hsl(var(--border))',
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        background:
+          "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 1))",
+        border: "1px solid hsl(var(--border))",
       }}
     >
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 0, overflow: 'hidden' }}>
-        <Box sx={{ px: 3, pt: 3, pb: 2, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-          <TableChart sx={{ mr: 1, color: 'primary.main' }} />
+      <CardContent
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          p: 0,
+          overflow: "hidden",
+        }}
+      >
+        <Box
+          sx={{
+            px: 3,
+            pt: 3,
+            pb: 2,
+            display: "flex",
+            alignItems: "center",
+            flexShrink: 0,
+          }}
+        >
+          <TableChart sx={{ mr: 1, color: "primary.main" }} />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Mapping Sheet
           </Typography>
@@ -53,21 +71,23 @@ const MappingTable = ({ data }: MappingTableProps) => {
               label={`${data.length} mappings`}
               size="small"
               color="primary"
-              sx={{ ml: 'auto' }}
+              sx={{ ml: "auto" }}
             />
           )}
         </Box>
 
-        <TableContainer sx={{ flexGrow: 1, px: 3, pb: 3, overflow: 'auto', minHeight: 0 }}>
+        <TableContainer
+          sx={{ flexGrow: 1, px: 3, pb: 3, overflow: "auto", minHeight: 0 }}
+        >
           {data.length === 0 ? (
             <Box
               sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                color: 'text.secondary',
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                color: "text.secondary",
               }}
             >
               <TableChart sx={{ fontSize: 64, mb: 2, opacity: 0.3 }} />
@@ -79,21 +99,26 @@ const MappingTable = ({ data }: MappingTableProps) => {
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 600, bgcolor: 'hsl(var(--muted) / 0.3)' }}>
-                    Source Field
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, bgcolor: 'hsl(var(--muted) / 0.3)' }}>
-                    Target Field
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, bgcolor: 'hsl(var(--muted) / 0.3)' }}>
-                    Data Type
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, bgcolor: 'hsl(var(--muted) / 0.3)' }}>
-                    Transformation
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, bgcolor: 'hsl(var(--muted) / 0.3)' }}>
-                    Status
-                  </TableCell>
+                  {[
+                    "Source Field",
+                    "Target Field",
+                    "Data Type",
+                    "Transformation",
+                    "Status",
+                  ].map((header) => (
+                    <TableCell
+                      key={header}
+                      sx={{
+                        fontWeight: 600,
+                        bgcolor: "background.default", // solid background (prevents transparency)
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 2, // ensures it stays above the body rows
+                      }}
+                    >
+                      {header}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -101,10 +126,10 @@ const MappingTable = ({ data }: MappingTableProps) => {
                   <TableRow
                     key={row.id}
                     sx={{
-                      '&:hover': {
-                        backgroundColor: 'hsl(var(--muted) / 0.2)',
+                      "&:hover": {
+                        backgroundColor: "hsl(var(--muted) / 0.2)",
                       },
-                      transition: 'background-color 0.2s ease',
+                      transition: "background-color 0.2s ease",
                     }}
                   >
                     <TableCell>
@@ -112,10 +137,10 @@ const MappingTable = ({ data }: MappingTableProps) => {
                         <Typography
                           variant="body2"
                           sx={{
-                            maxWidth: '150px',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
+                            maxWidth: "150px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {row.sourceField}
@@ -127,10 +152,10 @@ const MappingTable = ({ data }: MappingTableProps) => {
                         <Typography
                           variant="body2"
                           sx={{
-                            maxWidth: '150px',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
+                            maxWidth: "150px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {row.targetField}
@@ -138,10 +163,17 @@ const MappingTable = ({ data }: MappingTableProps) => {
                       </Tooltip>
                     </TableCell>
                     <TableCell>
-                      <Chip label={row.dataType} size="small" variant="outlined" />
+                      <Chip
+                        label={row.dataType}
+                        size="small"
+                        variant="outlined"
+                      />
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
+                      <Typography
+                        variant="body2"
+                        sx={{ textTransform: "capitalize" }}
+                      >
                         {row.transformation}
                       </Typography>
                     </TableCell>
@@ -151,7 +183,7 @@ const MappingTable = ({ data }: MappingTableProps) => {
                         label={row.status}
                         size="small"
                         color={getStatusColor(row.status) as any}
-                        sx={{ textTransform: 'capitalize' }}
+                        sx={{ textTransform: "capitalize" }}
                       />
                     </TableCell>
                   </TableRow>
