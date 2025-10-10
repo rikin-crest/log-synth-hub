@@ -24,8 +24,8 @@ const ChainOfThoughts = ({ steps, isProcessing }: ChainOfThoughtsProps) => {
         border: '1px solid hsl(var(--border))',
       }}
     >
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, flexShrink: 0 }}>
           <Psychology sx={{ mr: 1, color: 'primary.main' }} />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             AI Chain of Thoughts
@@ -47,6 +47,7 @@ const ChainOfThoughts = ({ steps, isProcessing }: ChainOfThoughtsProps) => {
               height: 6,
               borderRadius: 3,
               backgroundColor: 'hsl(var(--muted))',
+              flexShrink: 0,
               '& .MuiLinearProgress-bar': {
                 background: 'linear-gradient(90deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))',
               },
@@ -61,6 +62,8 @@ const ChainOfThoughts = ({ steps, isProcessing }: ChainOfThoughtsProps) => {
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
+            pr: 1,
+            minHeight: 0,
           }}
         >
           {steps.length === 0 && !isProcessing && (
@@ -93,6 +96,7 @@ const ChainOfThoughts = ({ steps, isProcessing }: ChainOfThoughtsProps) => {
                 backgroundColor: 'hsl(var(--muted) / 0.3)',
                 animation: 'slide-in-up 0.4s ease-out',
                 transition: 'all 0.3s ease',
+                flexShrink: 0,
                 '&:hover': {
                   backgroundColor: 'hsl(var(--muted) / 0.5)',
                   transform: 'translateX(4px)',
