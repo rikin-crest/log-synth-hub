@@ -101,7 +101,7 @@ const Dashboard = () => {
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
             <AutoAwesome sx={{ mr: 1, fontSize: 32 }} />
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              AI Mapper Dashboard
+              Parser Generator Dashboard
             </Typography>
           </Box>
           <IconButton color="inherit" onClick={handleLogout}>
@@ -112,27 +112,40 @@ const Dashboard = () => {
       </AppBar>
 
       {/* Main Content */}
-      <Container maxWidth="xl" sx={{ py: 4, height: "90vh", overflow: "auto" }}>
+      <Container
+        maxWidth="xl"
+        sx={{
+          py: 1,
+          height: "91vh",
+          overflow: "auto",
+          display: "flex",
+          gap: 3,
+        }}
+      >
         {/* Top Row */}
         <Box
           sx={{
             display: "flex",
-            flexDirection: { xs: "column", lg: "row" },
-            gap: 3,
-            mb: 4,
+            flexDirection: "column",
+            width: "800px",
+            gap: 1,
           }}
         >
           {/* Left - Input Section */}
-          <Box sx={{ height: "460px", width: 1 / 3, flexShrink: 0 }}>
+          <Box sx={{ height: "35vh" }}>
             <InputSection
               onSubmit={handleGenerateMappings}
               isProcessing={isProcessing}
             />
           </Box>
 
-          {/* Right - Mapping Table */}
-          <Box sx={{ height: "460px", overflow: "visible", width: "100%" }}>
-            <MappingTable data={mappingData} />
+          {/* Left - Chain of Thoughts */}
+          <Box
+            sx={{
+              height: "53vh",
+            }}
+          >
+            <ChainOfThoughts steps={thoughtSteps} isProcessing={isProcessing} />
           </Box>
         </Box>
 
@@ -140,23 +153,18 @@ const Dashboard = () => {
         <Box
           sx={{
             display: "flex",
-            flexDirection: { xs: "column", lg: "row" },
-            gap: 3,
+            flexDirection: "column",
+            width: "100%",
+            gap: 1,
           }}
         >
-          {/* Left - Chain of Thoughts */}
-          <Box
-            sx={{
-              height: "380px",
-              width: 1 / 3,
-              flexShrink: 0,
-            }}
-          >
-            <ChainOfThoughts steps={thoughtSteps} isProcessing={isProcessing} />
+          {/* Right - Mapping Table */}
+          <Box sx={{ height: "60vh", overflow: "visible", width: "100%" }}>
+            <MappingTable data={mappingData} />
           </Box>
 
           {/* Right - Feedback Section */}
-          <Box sx={{ height: "380px", overflow: "visible", width: "100%" }}>
+          <Box sx={{ height: "28vh", overflow: "visible", width: "100%" }}>
             <FeedbackSection
               onRerun={handleRerun}
               onConfGenerate={handleConfGenerate}

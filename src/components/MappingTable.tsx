@@ -50,6 +50,10 @@ const MappingTable = ({ data }: MappingTableProps) => {
           flexDirection: "column",
           p: 0,
           overflow: "hidden",
+
+          "&:last-child": {
+            p: 0
+          }
         }}
       >
         <Box

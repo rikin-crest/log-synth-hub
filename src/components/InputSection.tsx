@@ -40,17 +40,7 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
   };
 
   const handleSubmit = () => {
-    // if (!productName || !logType || !fileName) {
-    //   toast.error('Please fill in all required fields');
-    //   return;
-    // }
-
-    onSubmit({
-      productName,
-      logCategory,
-      logType,
-      fileName,
-    });
+    onSubmit({ productName, logCategory, logType, fileName });
   };
 
   return (
@@ -60,47 +50,36 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
         display: "flex",
         flexDirection: "column",
         background:
-          "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 1))",
+          "linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,1))",
         border: "1px solid hsl(var(--border))",
       }}
     >
       <CardContent
-        sx={{
-          flexGrow: 1,
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
+        sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, p: 2 }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+        {/* Header */}
+        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
           <AutoAwesome sx={{ mr: 1, color: "primary.main" }} />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Input Configuration
           </Typography>
         </Box>
 
+        {/* Inputs in grid */}
         <Box
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 2.5,
-            flexGrow: 1,
-            overflow: "auto",
-            pr: 1,
-            pt: 1,
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 2,
           }}
         >
-          <FormControl fullWidth>
+          <FormControl fullWidth size="small">
             <InputLabel>Product Name *</InputLabel>
             <Select
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
               label="Product Name *"
-              startAdornment={
-                <InputAdornment position="start">
-                  <Category color="primary" />
-                </InputAdornment>
-              }
+              // sx={{ height: "100%" }}
             >
               <MenuItem value="Product A">Product A</MenuItem>
               <MenuItem value="Product B">Product B</MenuItem>
@@ -109,7 +88,24 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
             </Select>
           </FormControl>
 
+          <FormControl fullWidth size="small">
+            <InputLabel>Log Type *</InputLabel>
+            <Select
+              value={logType}
+              onChange={(e) => setLogType(e.target.value)}
+              label="Log Type *"
+              // sx={{
+              //   height: "100%",
+              // }}
+            >
+              <MenuItem value="json">JSON</MenuItem>
+              <MenuItem value="kv">Key-Value (KV)</MenuItem>
+              <MenuItem value="xml">XML</MenuItem>
+            </Select>
+          </FormControl>
+
           <TextField
+            size="small"
             fullWidth
             label="Product Log Category"
             value={logCategory}
@@ -122,78 +118,66 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
                 </InputAdornment>
               ),
             }}
+            // sx={{
+            //   ".MuiOutlinedInput-root": {
+            //     height: "100%",
+            //   },
+            // }}
           />
 
-          <Box>
-            <Button
-              variant="outlined"
-              component="label"
-              fullWidth
-              startIcon={<CloudUpload />}
-              sx={{
-                py: 2,
-                borderStyle: "dashed",
-                borderWidth: 2,
-                "&:hover": {
-                  borderStyle: "dashed",
-                  borderWidth: 2,
-                },
-              }}
-            >
-              {fileName || "Upload Log File *"}
-              <input
-                type="file"
-                hidden
-                onChange={handleFileChange}
-                accept=".json,.xml,.log,.txt"
-              />
-            </Button>
-            {fileName && (
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mt: 1, display: "block" }}
-              >
-                Selected: {fileName}
-              </Typography>
-            )}
-          </Box>
-
-          <FormControl fullWidth>
-            <InputLabel>Log Type *</InputLabel>
-            <Select
-              value={logType}
-              onChange={(e) => setLogType(e.target.value)}
-              label="Log Type *"
-            >
-              <MenuItem value="json">JSON</MenuItem>
-              <MenuItem value="kv">Key-Value (KV)</MenuItem>
-              <MenuItem value="xml">XML</MenuItem>
-            </Select>
-          </FormControl>
-
           <Button
+            variant="outlined"
+            component="label"
             fullWidth
-            variant="contained"
-            size="large"
-            onClick={handleSubmit}
-            disabled={isProcessing}
+            startIcon={<CloudUpload />}
             sx={{
-              mt: "auto",
-              py: 1.5,
-              fontSize: "1rem",
-              fontWeight: 600,
-              background:
-                "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
-              "&:hover": {
-                background:
-                  "linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))",
-              },
+              p: 0,
+              height: "100%",
+              borderStyle: "dashed",
+              borderWidth: 2,
+              "&:hover": { borderStyle: "dashed", borderWidth: 2 },
             }}
           >
-            {isProcessing ? "Generating..." : "Generate Mappings"}
+            {fileName || "Upload Log File *"}
+            <input
+              type="file"
+              hidden
+              onChange={handleFileChange}
+              accept=".json,.xml,.log,.txt"
+            />
           </Button>
+          {fileName && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 0.5, gridColumn: "1 / -1" }}
+            >
+              Selected: {fileName}
+            </Typography>
+          )}
         </Box>
+
+        {/* Button at the bottom */}
+        <Button
+          variant="contained"
+          size="large"
+          onClick={handleSubmit}
+          disabled={isProcessing}
+          sx={{
+            py: 1.5,
+            fontSize: "1rem",
+            fontWeight: 600,
+            cursor: isProcessing ? "no-drop" : "pointer",
+            background:
+              "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
+            "&:hover": {
+              background:
+                "linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))",
+            },
+          }}
+        >
+          {isProcessing ? "Generating..." : "Generate Mappings"}
+        </Button>
       </CardContent>
     </Card>
   );
