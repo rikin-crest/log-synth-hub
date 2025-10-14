@@ -25,17 +25,35 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
   const [logCategory, setLogCategory] = useState("");
   const [logType, setLogType] = useState("");
   const [fileName, setFileName] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFileName(file.name);
-      toast.success(`File selected: ${file.name}`);
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
+      toast.success(`File selected: ${selectedFile.name}`);
     }
   };
 
-  const handleSubmit = () => {
-    onSubmit({ productName, logCategory, logType, fileName });
+  const handleSubmit = async () => {
+    if (!file) {
+      toast.error("Please upload a file first");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("product_name", productName);
+    formData.append("product_log_name", logCategory);
+    formData.append("udm_event_type", logType);
+    formData.append("raw_logs_path", file);
+
+    try {
+      onSubmit(formData);
+    } catch (err) {
+      console.error(err);
+      toast.error("File upload failed!");
+    }
   };
 
   return (
@@ -58,7 +76,7 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           gap: 2,
           p: 2,
           height: "100%",
-          overflow: "auto"
+          overflow: "auto",
         }}
       >
         {/* Header */}
@@ -83,7 +101,6 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
               label="Product Name *"
-              // sx={{ height: "100%" }}
             >
               <MenuItem value="Product A">Product A</MenuItem>
               <MenuItem value="Product B">Product B</MenuItem>
@@ -98,9 +115,6 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
               value={logType}
               onChange={(e) => setLogType(e.target.value)}
               label="Log Type *"
-              // sx={{
-              //   height: "100%",
-              // }}
             >
               <MenuItem value="json">JSON</MenuItem>
               <MenuItem value="kv">Key-Value (KV)</MenuItem>
@@ -122,11 +136,6 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
                 </InputAdornment>
               ),
             }}
-            // sx={{
-            //   ".MuiOutlinedInput-root": {
-            //     height: "100%",
-            //   },
-            // }}
           />
 
           <Button

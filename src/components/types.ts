@@ -1,14 +1,14 @@
 export type FormType = {
   productName: string;
   logCategory: string;
-  fileName: string;
+  file: File;
   logType: string;
 };
 
 export type StartWorkflowPayload = {
   product_name: string;
   product_log_name: string;
-  raw_logs_path: string;
+  raw_logs_path: File;
   udm_event_type: string;
 };
 

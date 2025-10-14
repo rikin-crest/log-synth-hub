@@ -17,10 +17,8 @@ import MappingTable from "../components/MappingTable";
 import FeedbackSection from "../components/FeedbackSection";
 import { generateConf, resumeWorkflow, startWorkflow } from "@/api/workflow";
 import {
-  FormType,
   GenerateConfPayload,
   ResumeWorkflowPayload,
-  StartWorkflowPayload,
   WorkflowResponse,
 } from "@/components/types";
 import { addToSessionStorage, getFromSessionStorage } from "@/lib/session";
@@ -37,47 +35,19 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  const handleGenerateMappings = async (formData: FormType) => {
+  const handleGenerateMappings = async (formData: FormData) => {
     setIsProcessing(true);
     setThoughtSteps([]);
     setMappingData([]);
 
-    console.log(formData);
-    const payload: StartWorkflowPayload = {
-      product_name: "microsoft_defender",
-      product_log_name: "DeviceImageLoadEvents",
-      raw_logs_path:
-        "C:/Users/jainam.parekh/Downloads/parser-generation-tool/data/logs/microsoft_defender/device_image_load_events",
-      udm_event_type: "process_module_load",
-    };
-
-    // const payload: StartWorkflowPayload = {
-    //   product_name: formData.productName,
-    //   product_log_name: formData.logCategory,
-    //   raw_logs_path: formData.fileName,
-    //   udm_event_type: formData.logType,
-    // };
-
-    const headers = {
-      accept: "application/json",
-      "Content-Type": "application/json",
-    };
-
     try {
-      const result: WorkflowResponse | null = await startWorkflow(
-        payload,
-        headers
-      );
+      const result: WorkflowResponse | null = await startWorkflow(formData);
 
       if (!result) return;
-
-      console.log("result", result);
 
       addToSessionStorage("thread_id", result["thread_id"]);
 
       setMappingData(result.output || []);
-
-      // console.log(result);
     } catch (e) {
       toast.error("Failed to generate mappings!");
     } finally {
@@ -112,8 +82,6 @@ const Dashboard = () => {
       if (!result) return;
 
       setMappingData(result.output || []);
-
-      console.log(result);
     } catch (e) {
       toast.error("Failed to Resume Workflow!");
     } finally {

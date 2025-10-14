@@ -1,23 +1,20 @@
 import {
   GenerateConfPayload,
   ResumeWorkflowPayload,
-  StartWorkflowPayload,
   WorkflowResponse,
 } from "@/components/types";
 import { API_CONFIG } from "./api";
 import { toast } from "sonner";
 
 export const startWorkflow = async (
-  payload: StartWorkflowPayload,
-  headers: HeadersInit
+  payload: FormData
 ): Promise<WorkflowResponse | null> => {
   try {
     const response = await fetch(
       `${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.START_WORKFLOW}`,
       {
         method: "POST",
-        body: JSON.stringify(payload),
-        headers,
+        body: payload,
       }
     );
 
