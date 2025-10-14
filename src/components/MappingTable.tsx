@@ -3,34 +3,45 @@ import {
   CardContent,
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Chip,
-  Tooltip,
+  LinearProgress,
 } from "@mui/material";
-import { TableChart, Circle } from "@mui/icons-material";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { TableChart } from "@mui/icons-material";
 
 interface MappingTableProps {
-  data: any[];
+  data: Record<string, any>[];
+  columns: string[];
+  loading?: boolean;
 }
 
-const MappingTable = ({ data }: MappingTableProps) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "mapped":
-        return "success";
-      case "pending":
-        return "warning";
-      case "conflict":
-        return "error";
-      default:
-        return "default";
-    }
-  };
+const MappingTable = ({
+  data,
+  columns,
+  loading = false,
+}: MappingTableProps) => {
+  const gridColumns: GridColDef[] = columns.map((col) => ({
+    field: col,
+    headerName: col,
+    flex: 1,
+    minWidth: 150,
+    sortable: true,
+    renderCell: (params) => (
+      <Box
+        sx={{
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          width: "100%",
+        }}
+        title={String(params.value ?? "")}
+      >
+        {params.value ?? "-"}
+      </Box>
+    ),
+  }));
+
+  const gridRows = data.map((row, index) => ({ id: index, ...row }));
 
   return (
     <Card
@@ -50,12 +61,10 @@ const MappingTable = ({ data }: MappingTableProps) => {
           flexDirection: "column",
           p: 0,
           overflow: "hidden",
-
-          "&:last-child": {
-            p: 0
-          }
+          "&:last-child": { p: 0 },
         }}
       >
+        {/* Header */}
         <Box
           sx={{
             px: 3,
@@ -80,122 +89,39 @@ const MappingTable = ({ data }: MappingTableProps) => {
           )}
         </Box>
 
-        <TableContainer
-          sx={{ flexGrow: 1, px: 3, pb: 3, overflow: "auto", minHeight: 0 }}
-        >
-          {data.length === 0 ? (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                color: "text.secondary",
-              }}
-            >
-              <TableChart sx={{ fontSize: 64, mb: 2, opacity: 0.3 }} />
-              <Typography variant="body1">
-                Mapping data will appear here after generation
-              </Typography>
-            </Box>
-          ) : (
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  {[
-                    "Source Field",
-                    "Target Field",
-                    "Data Type",
-                    "Transformation",
-                    "Status",
-                  ].map((header) => (
-                    <TableCell
-                      key={header}
-                      sx={{
-                        fontWeight: 600,
-                        bgcolor: "background.default", // solid background (prevents transparency)
-                        position: "sticky",
-                        top: 0,
-                        zIndex: 2, // ensures it stays above the body rows
-                      }}
-                    >
-                      {header}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {data.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    sx={{
-                      "&:hover": {
-                        backgroundColor: "hsl(var(--muted) / 0.2)",
-                      },
-                      transition: "background-color 0.2s ease",
-                    }}
-                  >
-                    <TableCell>
-                      <Tooltip title={row.sourceField} arrow>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            maxWidth: "150px",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {row.sourceField}
-                        </Typography>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell>
-                      <Tooltip title={row.targetField} arrow>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            maxWidth: "150px",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {row.targetField}
-                        </Typography>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={row.dataType}
-                        size="small"
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography
-                        variant="body2"
-                        sx={{ textTransform: "capitalize" }}
-                      >
-                        {row.transformation}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        icon={<Circle sx={{ fontSize: 8 }} />}
-                        label={row.status}
-                        size="small"
-                        color={getStatusColor(row.status) as any}
-                        sx={{ textTransform: "capitalize" }}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </TableContainer>
+        {/* DataGrid */}
+        <Box sx={{ flexGrow: 1, px: 3, pb: 3 }}>
+          <DataGrid
+            rows={gridRows}
+            columns={gridColumns}
+            disableRowSelectionOnClick
+            density="compact"
+            sortingOrder={["asc", "desc"]}
+            loading={loading}
+            localeText={{
+              noRowsLabel: "No Mappings",
+              noColumnsOverlayLabel: "No Mappings",
+            }}
+            slots={{
+              loadingOverlay: LinearProgress, // ✅ use LinearProgress bar as loader
+            }}
+            sx={{
+              border: "none",
+              backgroundColor: "transparent",
+              "& .MuiDataGrid-columnHeaders": {
+                fontWeight: 600,
+                backgroundColor: "background.default",
+              },
+              "& .MuiDataGrid-overlay": {
+                backgroundColor: "rgba(255,255,255,0.8)",
+              },
+            }}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 10, page: 0 } },
+            }}
+            pageSizeOptions={[5, 10, 25, 50]}
+          />
+        </Box>
       </CardContent>
     </Card>
   );

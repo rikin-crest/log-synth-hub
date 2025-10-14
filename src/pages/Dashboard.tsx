@@ -15,75 +15,133 @@ import InputSection from "../components/InputSection";
 import ChainOfThoughts from "../components/ChainOfThoughts";
 import MappingTable from "../components/MappingTable";
 import FeedbackSection from "../components/FeedbackSection";
+import { generateConf, resumeWorkflow, startWorkflow } from "@/api/workflow";
+import {
+  FormType,
+  GenerateConfPayload,
+  ResumeWorkflowPayload,
+  StartWorkflowPayload,
+  WorkflowResponse,
+} from "@/components/types";
+import { addToSessionStorage, getFromSessionStorage } from "@/lib/session";
+import { getColumns } from "@/lib/utils";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [thoughtSteps, setThoughtSteps] = useState<string[]>([]);
-  const [mappingData, setMappingData] = useState<any[]>([]);
+  const [mappingData, setMappingData] = useState<unknown[]>([]);
 
   const handleLogout = () => {
     toast.success("Logged out successfully");
     navigate("/");
   };
 
-  const handleGenerateMappings = (formData: any) => {
+  const handleGenerateMappings = async (formData: FormType) => {
     setIsProcessing(true);
     setThoughtSteps([]);
     setMappingData([]);
 
-    const thoughts = [
-      "Analyzing log file structure...",
-      "Identifying key fields and patterns...",
-      "Parsing JSON/KV/XML format...",
-      "Extracting metadata and attributes...",
-      "Generating mapping relationships...",
-      "Optimizing mapping configuration...",
-      "Validating mapping consistency...",
-      "Finalizing mapping schema...",
-    ];
-
-    const runStep = (index: number) => {
-      if (index < thoughts.length) {
-        setThoughtSteps((prev) => [...prev, thoughts[index]]);
-        setTimeout(() => runStep(index + 1), 800);
-      } else {
-        // Done processing
-        setIsProcessing(false);
-
-        const sampleData = Array.from({ length: 35 }, (_, i) => ({
-          id: i + 1,
-          sourceField: `field_${i + 1}`,
-          targetField: `mapped_field_${i + 1}`,
-          dataType: ["string", "integer", "boolean", "date", "array"][i % 5],
-          transformation: ["direct", "concat", "split", "format", "lookup"][
-            i % 5
-          ],
-          status: ["mapped", "pending", "conflict"][i % 3],
-        }));
-
-        setMappingData(sampleData);
-        toast.success("Mappings generated successfully!");
-      }
+    console.log(formData);
+    const payload: StartWorkflowPayload = {
+      product_name: "microsoft_defender",
+      product_log_name: "DeviceImageLoadEvents",
+      raw_logs_path:
+        "C:/Users/jainam.parekh/Downloads/parser-generation-tool/data/logs/microsoft_defender/device_image_load_events",
+      udm_event_type: "process_module_load",
     };
 
-    // Start the chain
-    runStep(0);
+    // const payload: StartWorkflowPayload = {
+    //   product_name: formData.productName,
+    //   product_log_name: formData.logCategory,
+    //   raw_logs_path: formData.fileName,
+    //   udm_event_type: formData.logType,
+    // };
+
+    const headers = {
+      accept: "application/json",
+      "Content-Type": "application/json",
+    };
+
+    try {
+      const result: WorkflowResponse | null = await startWorkflow(
+        payload,
+        headers
+      );
+
+      if (!result) return;
+
+      console.log("result", result);
+
+      addToSessionStorage("thread_id", result["thread_id"]);
+
+      setMappingData(result.output || []);
+
+      // console.log(result);
+    } catch (e) {
+      toast.error("Failed to generate mappings!");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleRerun = () => {
-    toast.info("Rerunning AI analysis...");
+  const handleRerun = async (feedback: string) => {
+    toast.info("Re-running AI analysis...");
+    setIsProcessing(true);
     setThoughtSteps([]);
     setMappingData([]);
+
+    const thread_id = getFromSessionStorage("thread_id");
+
+    const payload: ResumeWorkflowPayload = {
+      thread_id,
+      feedback,
+    };
+
+    const headers = {
+      accept: "application/json",
+      "Content-Type": "application/json",
+    };
+
+    try {
+      const result: WorkflowResponse | null = await resumeWorkflow(
+        payload,
+        headers
+      );
+
+      if (!result) return;
+
+      setMappingData(result.output || []);
+
+      console.log(result);
+    } catch (e) {
+      toast.error("Failed to Resume Workflow!");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleConfGenerate = (feedback: string) => {
-    if (!feedback.trim()) {
-      toast.error("Please provide feedback before generating");
-      return;
+  const handleConfGenerate = async () => {
+    toast.info("Generating final configuration...");
+    setThoughtSteps([]);
+    setMappingData([]);
+
+    const thread_id = getFromSessionStorage("thread_id");
+
+    const payload: GenerateConfPayload = {
+      thread_id,
+    };
+
+    const headers = {
+      accept: "application/json",
+      "Content-Type": "application/json",
+    };
+
+    try {
+      await generateConf(payload, headers);
+    } catch (e) {
+      toast.error("Failed to Resume Workflow!");
     }
-    toast.success("Generating final configuration...");
-    console.log("Feedback:", feedback);
   };
 
   return (
@@ -132,7 +190,7 @@ const Dashboard = () => {
           }}
         >
           {/* Left - Input Section */}
-          <Box sx={{ height: "35vh" }}>
+          <Box sx={{ height: "40vh" }}>
             <InputSection
               onSubmit={handleGenerateMappings}
               isProcessing={isProcessing}
@@ -160,7 +218,11 @@ const Dashboard = () => {
         >
           {/* Right - Mapping Table */}
           <Box sx={{ height: "60vh", overflow: "visible", width: "100%" }}>
-            <MappingTable data={mappingData} />
+            <MappingTable
+              data={mappingData}
+              columns={getColumns(mappingData)}
+              loading={isProcessing}
+            />
           </Box>
 
           {/* Right - Feedback Section */}

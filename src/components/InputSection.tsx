@@ -12,12 +12,7 @@ import {
   InputLabel,
   InputAdornment,
 } from "@mui/material";
-import {
-  CloudUpload,
-  AutoAwesome,
-  Category,
-  Description,
-} from "@mui/icons-material";
+import { CloudUpload, AutoAwesome, Description } from "@mui/icons-material";
 import { toast } from "sonner";
 
 interface InputSectionProps {
@@ -55,7 +50,16 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
       }}
     >
       <CardContent
-        sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, p: 2 }}
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-evenly",
+          gap: 2,
+          p: 2,
+          height: "100%",
+          overflow: "auto"
+        }}
       >
         {/* Header */}
         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
@@ -132,9 +136,11 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
             startIcon={<CloudUpload />}
             sx={{
               p: 0,
+              px: 1,
               height: "100%",
               borderStyle: "dashed",
               borderWidth: 2,
+              wordBreak: "break-word",
               "&:hover": { borderStyle: "dashed", borderWidth: 2 },
             }}
           >
@@ -146,15 +152,6 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
               accept=".json,.xml,.log,.txt"
             />
           </Button>
-          {fileName && (
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ mt: 0.5, gridColumn: "1 / -1" }}
-            >
-              Selected: {fileName}
-            </Typography>
-          )}
         </Box>
 
         {/* Button at the bottom */}
