@@ -5,6 +5,7 @@ import {
 } from "@/components/types";
 import { API_CONFIG } from "./api";
 import { toast } from "sonner";
+import { getAuthHeader } from "./auth";
 
 export const startWorkflow = async (
   payload: FormData
@@ -14,6 +15,9 @@ export const startWorkflow = async (
       `${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.START_WORKFLOW}`,
       {
         method: "POST",
+        headers: {
+          ...getAuthHeader(),
+        },
         body: payload,
       }
     );
@@ -38,7 +42,10 @@ export const resumeWorkflow = async (
       {
         method: "POST",
         body: JSON.stringify(payload),
-        headers,
+        headers: {
+          ...getAuthHeader(),
+          ...headers,
+        },
       }
     );
 
@@ -61,7 +68,10 @@ export const generateConf = async (
       `${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.GENERATE_CONF}?thread_id=${payload.thread_id}`,
       {
         method: "GET",
-        headers,
+        headers: {
+          ...getAuthHeader(),
+          ...headers,
+        },
       }
     );
 

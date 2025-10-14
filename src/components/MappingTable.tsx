@@ -4,7 +4,6 @@ import {
   CardContent,
   Box,
   Typography,
-  Chip,
   Button,
   Stack,
   CircularProgress,
@@ -14,9 +13,14 @@ import {
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { TableChart, Download, Search } from "@mui/icons-material";
 
+interface Column {
+  key: string;
+  name: string;
+}
+
 interface MappingTableProps {
   data: Record<string, any>[];
-  columns: string[];
+  columns: Column[];
   loading?: boolean;
 }
 
@@ -27,8 +31,8 @@ const MappingTable = ({
 }: MappingTableProps) => {
   const [searchTerm, setSearchTerm] = React.useState("");
   const gridColumns: GridColDef[] = columns.map((col) => ({
-    field: col,
-    headerName: col,
+    field: col.key,
+    headerName: col.name,
     flex: 1,
     minWidth: 150,
     sortable: true,
@@ -53,7 +57,7 @@ const MappingTable = ({
 
     return data.filter((row) =>
       columns.some((col) => {
-        const value = row[col];
+        const value = row[col.key];
         if (value == null) return false;
         return String(value).toLowerCase().includes(searchTerm.toLowerCase());
       })
@@ -84,11 +88,11 @@ const MappingTable = ({
     if (filteredData.length === 0) return;
 
     const csvContent = [
-      columns.join(","), // Header row
+      columns.map((col) => col.name).join(","), // Header row with display names
       ...filteredData.map((row) =>
         columns
           .map((col) => {
-            const value = row[col] ?? "";
+            const value = row[col.key] ?? "";
             // Escape commas and quotes in CSV
             return typeof value === "string" &&
               (value.includes(",") || value.includes('"'))
@@ -168,7 +172,7 @@ const MappingTable = ({
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    height: 32,
+                    height: 36,
                     borderRadius: 2,
                     backgroundColor: "rgba(255, 255, 255, 0.8)",
                     fontSize: 14,
@@ -192,12 +196,6 @@ const MappingTable = ({
           >
             {data.length > 0 && (
               <>
-                <Chip
-                  label={`${filteredData.length} of ${data.length} mappings`}
-                  size="small"
-                  color="primary"
-                  variant="filled"
-                />
                 <Button
                   variant="contained"
                   size="small"

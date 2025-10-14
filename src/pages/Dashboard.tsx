@@ -22,6 +22,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { logoutUser } from "../api/auth";
 import InputSection from "../components/InputSection";
 import ChainOfThoughts from "../components/ChainOfThoughts";
 import WorkflowGraph from "../components/WorkflowGraph";
@@ -44,12 +45,10 @@ const Dashboard = () => {
   const [expandedPanel, setExpandedPanel] = useState<string | false>(
     "thoughts"
   );
-  const [workflowImageUrl, setWorkflowImageUrl] = useState<
-    string | undefined
-  >();
+  const [workflowImageUrl] = useState<string | undefined>();
 
   const handleLogout = () => {
-    toast.success("Logged out successfully");
+    logoutUser();
     navigate("/");
   };
 
