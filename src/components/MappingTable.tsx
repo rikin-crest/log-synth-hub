@@ -1,13 +1,18 @@
+import React from "react";
 import {
   Card,
   CardContent,
   Box,
   Typography,
   Chip,
-  LinearProgress,
+  Button,
+  Stack,
+  CircularProgress,
+  TextField,
+  InputAdornment,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { TableChart } from "@mui/icons-material";
+import { TableChart, Download, Search } from "@mui/icons-material";
 
 interface MappingTableProps {
   data: Record<string, any>[];
@@ -20,6 +25,7 @@ const MappingTable = ({
   columns,
   loading = false,
 }: MappingTableProps) => {
+  const [searchTerm, setSearchTerm] = React.useState("");
   const gridColumns: GridColDef[] = columns.map((col) => ({
     field: col,
     headerName: col,
@@ -34,14 +40,75 @@ const MappingTable = ({
           textOverflow: "ellipsis",
           width: "100%",
         }}
-        title={String(params.value ?? "")}
+        title={String(params.value || "")}
       >
-        {params.value ?? "-"}
+        {params.value || ""}
       </Box>
     ),
   }));
 
-  const gridRows = data.map((row, index) => ({ id: index, ...row }));
+  // Filter data based on search term
+  const filteredData = React.useMemo(() => {
+    if (!searchTerm.trim()) return data;
+
+    return data.filter((row) =>
+      columns.some((col) => {
+        const value = row[col];
+        if (value == null) return false;
+        return String(value).toLowerCase().includes(searchTerm.toLowerCase());
+      })
+    );
+  }, [data, columns, searchTerm]);
+
+  const gridRows = filteredData.map((row, index) => ({ id: index, ...row }));
+
+  const CustomLoadingOverlay = () => (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        gap: 2,
+      }}
+    >
+      <CircularProgress size={40} />
+      <Typography variant="body1" color="text.secondary">
+        It will take few minutes to generate mappings.
+      </Typography>
+    </Box>
+  );
+
+  const exportToCsv = () => {
+    if (filteredData.length === 0) return;
+
+    const csvContent = [
+      columns.join(","), // Header row
+      ...filteredData.map((row) =>
+        columns
+          .map((col) => {
+            const value = row[col] ?? "";
+            // Escape commas and quotes in CSV
+            return typeof value === "string" &&
+              (value.includes(",") || value.includes('"'))
+              ? `"${value.replace(/"/g, '""')}"`
+              : value;
+          })
+          .join(",")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "mapping-data.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <Card
@@ -73,20 +140,96 @@ const MappingTable = ({
             display: "flex",
             alignItems: "center",
             flexShrink: 0,
+            gap: 2,
           }}
         >
-          <TableChart sx={{ mr: 1, color: "primary.main" }} />
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Mapping Sheet
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <TableChart sx={{ mr: 1, color: "primary.main" }} />
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Mapping Sheet
+            </Typography>
+          </Box>
+
+          {/* Search Bar */}
           {data.length > 0 && (
-            <Chip
-              label={`${data.length} mappings`}
-              size="small"
-              color="primary"
-              sx={{ ml: "auto" }}
-            />
+            <Box sx={{ flexGrow: 1, maxWidth: 400 }}>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Search across all fields..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search sx={{ fontSize: 18, color: "text.secondary" }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    height: 32,
+                    borderRadius: 2,
+                    backgroundColor: "rgba(255, 255, 255, 0.8)",
+                    fontSize: 14,
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "primary.main",
+                    },
+                  },
+                  "& .MuiOutlinedInput-input": {
+                    padding: "6px 8px",
+                  },
+                }}
+              />
+            </Box>
           )}
+
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            sx={{ ml: "auto" }}
+          >
+            {data.length > 0 && (
+              <>
+                <Chip
+                  label={`${filteredData.length} of ${data.length} mappings`}
+                  size="small"
+                  color="primary"
+                  variant="filled"
+                />
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<Download sx={{ fontSize: 16 }} />}
+                  onClick={exportToCsv}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 600,
+                    px: 2,
+                    py: 0.75,
+                    borderRadius: 2,
+                    fontSize: 14,
+                    background:
+                      "linear-gradient(135deg, hsl(220, 70%, 55%), hsl(260, 85%, 60%))",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                    "& .MuiButton-startIcon": {
+                      marginRight: 1,
+                      marginLeft: 0,
+                    },
+                    "&:hover": {
+                      background:
+                        "linear-gradient(135deg, hsl(220, 70%, 50%), hsl(260, 85%, 55%))",
+                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                    },
+                    transition: "all 0.2s ease-in-out",
+                  }}
+                >
+                  Export CSV
+                </Button>
+              </>
+            )}
+          </Stack>
         </Box>
 
         {/* DataGrid */}
@@ -103,17 +246,52 @@ const MappingTable = ({
               noColumnsOverlayLabel: "No Mappings",
             }}
             slots={{
-              loadingOverlay: LinearProgress, // ✅ use LinearProgress bar as loader
+              loadingOverlay: CustomLoadingOverlay,
             }}
             sx={{
-              border: "none",
-              backgroundColor: "transparent",
+              border: "1px solid rgba(224, 224, 224, 1)",
+              height: 340,
+              backgroundColor: "white",
               "& .MuiDataGrid-columnHeaders": {
                 fontWeight: 600,
                 backgroundColor: "background.default",
               },
+              "& .MuiDataGrid-cell": {
+                borderRight: "1px solid rgba(224, 224, 224, 0.5)",
+                "&:last-child": {
+                  borderRight: "none",
+                },
+              },
+              "& .MuiDataGrid-columnHeader": {
+                borderRight: "1px solid rgba(224, 224, 224, 0.8)",
+                "&:last-child": {
+                  borderRight: "none",
+                },
+              },
               "& .MuiDataGrid-overlay": {
                 backgroundColor: "rgba(255,255,255,0.8)",
+              },
+              "& .MuiDataGrid-row": {
+                "&:last-child": {
+                  borderBottom: "1px solid rgba(224, 224, 224, 0.5)",
+                },
+              },
+              "& .MuiDataGrid-columnSeparator": {
+                display: "block",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontWeight: 600,
+              },
+              "& .MuiDataGrid-filler": {
+                display: "none",
+              },
+              "& .MuiDataGrid-scrollbarFiller": {
+                display: "none",
+              },
+              "& .MuiDataGrid-toolbarContainer": {
+                padding: "8px 16px",
+                borderBottom: "1px solid rgba(224, 224, 224, 0.8)",
+                backgroundColor: "rgba(250, 250, 250, 0.8)",
               },
             }}
             initialState={{

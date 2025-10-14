@@ -7,12 +7,24 @@ import {
   Toolbar,
   IconButton,
   Avatar,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Chip,
 } from "@mui/material";
-import { AutoAwesome, Logout } from "@mui/icons-material";
+import {
+  AutoAwesome,
+  Logout,
+  Settings,
+  Psychology,
+  AccountTree,
+  ExpandMore,
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import InputSection from "../components/InputSection";
 import ChainOfThoughts from "../components/ChainOfThoughts";
+import WorkflowGraph from "../components/WorkflowGraph";
 import MappingTable from "../components/MappingTable";
 import FeedbackSection from "../components/FeedbackSection";
 import { generateConf, resumeWorkflow, startWorkflow } from "@/api/workflow";
@@ -29,6 +41,12 @@ const Dashboard = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [thoughtSteps, setThoughtSteps] = useState<string[]>([]);
   const [mappingData, setMappingData] = useState<unknown[]>([]);
+  const [expandedPanel, setExpandedPanel] = useState<string | false>(
+    "thoughts"
+  );
+  const [workflowImageUrl, setWorkflowImageUrl] = useState<
+    string | undefined
+  >();
 
   const handleLogout = () => {
     toast.success("Logged out successfully");
@@ -127,7 +145,7 @@ const Dashboard = () => {
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
             <AutoAwesome sx={{ mr: 1, fontSize: 32 }} />
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Parser Generator Dashboard
+              Google SecOps Parser Generator
             </Typography>
           </Box>
           <IconButton color="inherit" onClick={handleLogout}>
@@ -148,7 +166,7 @@ const Dashboard = () => {
           gap: 3,
         }}
       >
-        {/* Top Row */}
+        {/* Left Column - Configuration & Analysis */}
         <Box
           sx={{
             display: "flex",
@@ -157,25 +175,153 @@ const Dashboard = () => {
             gap: 1,
           }}
         >
-          {/* Left - Input Section */}
-          <Box sx={{ height: "40vh" }}>
+          {/* Input Section - Standalone */}
+          <Box
+            sx={{
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,1))",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: "12px",
+              p: 2,
+              height: "fit-content",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+              <Settings sx={{ mr: 1, color: "primary.main" }} />
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Input Configuration
+              </Typography>
+            </Box>
             <InputSection
               onSubmit={handleGenerateMappings}
               isProcessing={isProcessing}
             />
           </Box>
 
-          {/* Left - Chain of Thoughts */}
-          <Box
+          {/* Chain of Thoughts Accordion */}
+          <Accordion
+            expanded={expandedPanel === "thoughts"}
+            onChange={() =>
+              setExpandedPanel(
+                expandedPanel === "thoughts" ? false : "thoughts"
+              )
+            }
             sx={{
-              height: "53vh",
+              background:
+                "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 1))",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: "12px !important",
+              "&:before": {
+                display: "none",
+              },
+              "& .MuiAccordionSummary-root": {
+                borderRadius: "12px",
+              },
+              "& .MuiAccordionDetails-root": {
+                borderRadius: "0 0 12px 12px",
+              },
             }}
           >
-            <ChainOfThoughts steps={thoughtSteps} isProcessing={isProcessing} />
-          </Box>
+            <AccordionSummary
+              expandIcon={<ExpandMore />}
+              sx={{
+                "& .MuiAccordionSummary-content": {
+                  alignItems: "center",
+                  gap: 1,
+                },
+              }}
+            >
+              <Psychology sx={{ color: "primary.main" }} />
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Chain of Thoughts
+              </Typography>
+              {thoughtSteps.length > 0 && (
+                <Chip
+                  label={`${thoughtSteps.length} steps`}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  sx={{ ml: 1 }}
+                />
+              )}
+            </AccordionSummary>
+            <AccordionDetails
+              sx={{
+                height: 245,
+                overflow: "auto",
+                p: 2,
+              }}
+            >
+              <ChainOfThoughts
+                steps={thoughtSteps}
+                isProcessing={isProcessing}
+              />
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Workflow Graph Accordion */}
+          <Accordion
+            expanded={expandedPanel === "workflow"}
+            onChange={() =>
+              setExpandedPanel(
+                expandedPanel === "workflow" ? false : "workflow"
+              )
+            }
+            sx={{
+              background:
+                "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 1))",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: "12px !important",
+              "&:before": {
+                display: "none",
+              },
+              "& .MuiAccordionSummary-root": {
+                borderRadius: "12px",
+              },
+              "& .MuiAccordionDetails-root": {
+                borderRadius: "0 0 12px 12px",
+              },
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMore />}
+              sx={{
+                "& .MuiAccordionSummary-content": {
+                  alignItems: "center",
+                  gap: 1,
+                },
+              }}
+            >
+              <AccountTree sx={{ color: "primary.main" }} />
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Workflow Graph
+              </Typography>
+              {workflowImageUrl && (
+                <Chip
+                  label="Generated"
+                  size="small"
+                  color="success"
+                  variant="outlined"
+                  sx={{ ml: 1 }}
+                />
+              )}
+            </AccordionSummary>
+            <AccordionDetails
+              sx={{
+                height: 260,
+                overflow: "auto",
+                p: 2,
+              }}
+            >
+              <WorkflowGraph
+                imageUrl={workflowImageUrl}
+                isLoading={isProcessing}
+              />
+            </AccordionDetails>
+          </Accordion>
         </Box>
 
-        {/* Bottom Row */}
+        {/* Right Column - Results & Feedback */}
         <Box
           sx={{
             display: "flex",
@@ -184,7 +330,7 @@ const Dashboard = () => {
             gap: 1,
           }}
         >
-          {/* Right - Mapping Table */}
+          {/* Mapping Table */}
           <Box sx={{ height: "60vh", overflow: "visible", width: "100%" }}>
             <MappingTable
               data={mappingData}
@@ -193,7 +339,7 @@ const Dashboard = () => {
             />
           </Box>
 
-          {/* Right - Feedback Section */}
+          {/* Feedback Section */}
           <Box sx={{ height: "28vh", overflow: "visible", width: "100%" }}>
             <FeedbackSection
               onRerun={handleRerun}

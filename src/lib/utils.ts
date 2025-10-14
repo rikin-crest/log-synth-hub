@@ -1,14 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-export const columns = [
-  "UDM Field Name",
-  "RawLog Field Name",
-  "Logic",
-  "LLM Reasoning",
-  "Human Feedback",
-];
-
 export const getColumns = (data: any) => {
   if (!data?.length) return [];
 
