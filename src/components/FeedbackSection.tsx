@@ -126,12 +126,11 @@ const FeedbackSection = ({
                 pointerEvents: "auto",
               },
               background:
-                "linear-gradient(135deg, hsl(145, 65%, 55%), hsl(145, 65%, 45%))",
+                "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
               "&:hover": {
                 background: disabled
-                  ? "linear-gradient(135deg, hsl(145, 65%, 55%), hsl(145, 65%, 45%))"
-                  : "linear-gradient(135deg, hsl(145, 65%, 50%), hsl(145, 65%, 40%))",
-                boxShadow: disabled ? "none" : "0 4px 12px rgba(0, 0, 0, 0.1)",
+                  ? "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))"
+                  : "linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))",
               },
             }}
           >

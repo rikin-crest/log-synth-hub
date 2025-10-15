@@ -129,7 +129,7 @@ const Login = () => {
                 textShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
               }}
             >
-              AI Mapper
+              Google SecOps Parser Generator
             </Typography>
           </Box>
           <Typography

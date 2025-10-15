@@ -57,19 +57,17 @@ const Dashboard = () => {
     setThoughtSteps([]);
     setMappingData([]);
 
-    try {
-      const result: WorkflowResponse | null = await startWorkflow(formData);
+    const result: WorkflowResponse | null = await startWorkflow(formData);
 
-      if (!result) return;
-
-      addToSessionStorage("thread_id", result["thread_id"]);
-
-      setMappingData(result.output || []);
-    } catch (e) {
-      toast.error("Failed to generate mappings!");
-    } finally {
+    if (!result) {
       setIsProcessing(false);
+      return;
     }
+
+    addToSessionStorage("thread_id", result["thread_id"]);
+
+    setMappingData(result.output || []);
+    setIsProcessing(false);
   };
 
   const handleRerun = async (feedback: string) => {
@@ -90,20 +88,18 @@ const Dashboard = () => {
       "Content-Type": "application/json",
     };
 
-    try {
-      const result: WorkflowResponse | null = await resumeWorkflow(
-        payload,
-        headers
-      );
+    const result: WorkflowResponse | null = await resumeWorkflow(
+      payload,
+      headers
+    );
 
-      if (!result) return;
-
-      setMappingData(result.output || []);
-    } catch (e) {
-      toast.error("Failed to Resume Workflow!");
-    } finally {
+    if (!result) {
       setIsProcessing(false);
+      return;
     }
+
+    setMappingData(result.output || []);
+    setIsProcessing(false);
   };
 
   const handleConfGenerate = async () => {
@@ -122,11 +118,7 @@ const Dashboard = () => {
       "Content-Type": "application/json",
     };
 
-    try {
-      await generateConf(payload, headers);
-    } catch (e) {
-      toast.error("Failed to Resume Workflow!");
-    }
+    await generateConf(payload, headers);
   };
 
   return (

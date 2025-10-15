@@ -9,7 +9,7 @@ export const getColumns = (data: any) => {
     let displayName = key;
 
     if (key.includes("UDM Field Name")) {
-      displayName = "UDM Name";
+      displayName = "UDM Field";
     } else if (key.includes("RawLog Field Name")) {
       displayName = "Product Field";
     }

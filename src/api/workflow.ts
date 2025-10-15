@@ -22,10 +22,54 @@ export const startWorkflow = async (
       }
     );
 
+    if (!response.ok) {
+      let errorMessage;
+
+      switch (response.status) {
+        case 400:
+          errorMessage = "Invalid request. Please check your input data.";
+          break;
+        case 401:
+          errorMessage = "Authentication failed. Please log in again.";
+          break;
+        case 403:
+          errorMessage =
+            "Access denied. You don't have permission to perform this action.";
+          break;
+        case 404:
+          errorMessage = "Workflow endpoint not found. Please contact support.";
+          break;
+        case 422:
+          errorMessage =
+            "Validation failed. Please check your input data and try again.";
+          break;
+        case 429:
+          errorMessage =
+            "Too many requests. Please wait a moment and try again.";
+          break;
+        case 500:
+          errorMessage = "Server error. Please try again later.";
+          break;
+        case 502:
+        case 503:
+        case 504:
+          errorMessage =
+            "Service temporarily unavailable. Please try again later.";
+          break;
+        default:
+          errorMessage = `Request failed with status ${response.status}. Please try again.`;
+      }
+
+      console.log("HTTP Error:", response.status, errorMessage);
+      toast.error(errorMessage);
+      return null;
+    }
+
     return response.json();
   } catch (e: unknown) {
     const errorMessage =
       (e as { message: string })?.message || "Failed to start workflow!";
+    console.log("errorMessage", errorMessage);
     toast.error(errorMessage);
 
     return null;
@@ -49,10 +93,54 @@ export const resumeWorkflow = async (
       }
     );
 
+    if (!response.ok) {
+      let errorMessage;
+
+      switch (response.status) {
+        case 400:
+          errorMessage = "Invalid request. Please check your workflow data.";
+          break;
+        case 401:
+          errorMessage = "Authentication failed. Please log in again.";
+          break;
+        case 403:
+          errorMessage =
+            "Access denied. You don't have permission to resume this workflow.";
+          break;
+        case 404:
+          errorMessage =
+            "Workflow not found. It may have expired or been deleted.";
+          break;
+        case 422:
+          errorMessage = "Invalid workflow state. Please start a new workflow.";
+          break;
+        case 429:
+          errorMessage =
+            "Too many requests. Please wait a moment and try again.";
+          break;
+        case 500:
+          errorMessage = "Server error. Please try again later.";
+          break;
+        case 502:
+        case 503:
+        case 504:
+          errorMessage =
+            "Service temporarily unavailable. Please try again later.";
+          break;
+        default:
+          errorMessage = `Request failed with status ${response.status}. Please try again.`;
+      }
+
+      console.log("HTTP Error:", response.status, errorMessage);
+      toast.error(errorMessage);
+      return null;
+    }
+
     return response.json();
   } catch (e: unknown) {
     const errorMessage =
       (e as { message: string })?.message || "Failed to resume workflow!";
+    console.log("errorMessage", errorMessage);
     toast.error(errorMessage);
 
     return null;

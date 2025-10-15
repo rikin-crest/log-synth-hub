@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   TextField,
   Button,
@@ -9,7 +9,7 @@ import {
   InputLabel,
   InputAdornment,
 } from "@mui/material";
-import { CloudUpload, Description } from "@mui/icons-material";
+import { CloudUpload, Description, Close } from "@mui/icons-material";
 import { toast } from "sonner";
 
 interface InputSectionProps {
@@ -23,14 +23,26 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
   const [logType, setLogType] = useState("");
   const [fileName, setFileName] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
+    console.log(selectedFile)
     if (selectedFile) {
       setFile(selectedFile);
       setFileName(selectedFile.name);
       toast.success(`File selected: ${selectedFile.name}`);
     }
+  };
+
+  const handleRemoveFile = () => {
+    setFile(null);
+    setFileName("");
+    // Clear the input value so onChange will fire again for the same file
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    toast.success("File removed successfully");
   };
 
   const handleProductNameChange = (value: string) => {
@@ -113,28 +125,57 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           }}
         />
 
-        <Button
-          variant="outlined"
-          component="label"
-          fullWidth
-          startIcon={<CloudUpload />}
-          sx={{
-            p: 0,
-            height: "100%",
-            borderStyle: "dashed",
-            borderWidth: 2,
-            wordBreak: "break-word",
-            "&:hover": { borderStyle: "dashed", borderWidth: 2 },
-          }}
-        >
-          {fileName || "Upload Log File *"}
-          <input
-            type="file"
-            hidden
-            onChange={handleFileChange}
-            accept=".json,.xml,.log,.txt"
-          />
-        </Button>
+        <Box sx={{ position: "relative", height: "100%" }}>
+          <Button
+            variant="outlined"
+            component="label"
+            fullWidth
+            startIcon={<CloudUpload />}
+            sx={{
+              p: 0,
+              height: "100%",
+              borderStyle: "dashed",
+              borderWidth: 2,
+              wordBreak: "break-word",
+              "&:hover": { borderStyle: "dashed", borderWidth: 2 },
+            }}
+          >
+            {fileName || "Upload Log File"}
+            <input
+              ref={fileInputRef}
+              type="file"
+              hidden
+              onChange={handleFileChange}
+              accept=".json,.xml,.log,.txt"
+            />
+          </Button>
+          {fileName && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleRemoveFile}
+              sx={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                minWidth: "auto",
+                width: 28,
+                height: 28,
+                p: 0,
+                border: "none",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "&:hover": {
+                  boxShadow: "none",
+                },
+              }}
+            >
+              <Close sx={{ fontSize: 18 }} />
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {/* Button at the bottom */}

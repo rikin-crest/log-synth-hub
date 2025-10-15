@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  BASE_URL: "http://10.50.8.223:8000",
+  BASE_URL: "https://10.50.1.12:8002",
   ENDPOINTS: {
     START_WORKFLOW: "api/v1/start_workflow",
     RESUME_WORKFLOW: "api/v1/resume_workflow",
