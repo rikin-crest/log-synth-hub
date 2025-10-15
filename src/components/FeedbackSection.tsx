@@ -124,6 +124,7 @@ const FeedbackSection = ({
               "&:disabled": {
                 cursor: "no-drop",
                 pointerEvents: "auto",
+                color: "#9ca3af !important",
               },
               background:
                 "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",

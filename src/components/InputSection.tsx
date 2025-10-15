@@ -8,6 +8,7 @@ import {
   FormControl,
   InputLabel,
   InputAdornment,
+  Autocomplete,
 } from "@mui/material";
 import { CloudUpload, Description, Close } from "@mui/icons-material";
 import { toast } from "sonner";
@@ -25,9 +26,42 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Product to log category mapping
+  const productLogCategories: Record<string, string[]> = {
+    microsoft_defender: [
+      "DeviceLogonEvents",
+      "DeviceImageLoadEvents",
+      "DeviceNetworkEvents",
+      "DeviceNetworkInfo",
+    ],
+    sentinel_one: ["MaliciousFile"],
+    jamf: ["jamfThreats"],
+    gcp_firewall: [],
+    gcp_dns: [],
+    zscalar_dlp: [],
+    pan_firewall: [],
+    cisco_duo: [],
+    gcp_cloud_nat: [],
+  };
+
+  // Get log category options based on selected product
+  const getLogCategoryOptions = () => {
+    if (!productName) return [];
+    return (
+      productLogCategories[productName as keyof typeof productLogCategories] ||
+      []
+    );
+  };
+
+  // Check if categories are available for the selected product
+  const hasCategoriesAvailable = () => {
+    const options = getLogCategoryOptions();
+    return options.filter((option) => option !== "").length > 0;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    console.log(selectedFile)
+    console.log(selectedFile);
     if (selectedFile) {
       setFile(selectedFile);
       setFileName(selectedFile.name);
@@ -47,6 +81,8 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
 
   const handleProductNameChange = (value: string) => {
     setProductName(value);
+    // Reset log category when product changes
+    setLogCategory("");
   };
 
   const handleLogTypeChange = (value: string) => {
@@ -92,7 +128,15 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
             onChange={(e) => handleProductNameChange(e.target.value)}
             label="Product Name"
           >
-            <MenuItem value="microsoft_defender">MS Defender</MenuItem>
+            <MenuItem value="microsoft_defender">Microsoft Defender</MenuItem>
+            <MenuItem value="sentinel_one">SentinelOne</MenuItem>
+            <MenuItem value="jamf">Jamf</MenuItem>
+            <MenuItem value="gcp_firewall">GCP Firewall</MenuItem>
+            <MenuItem value="gcp_dns">GCP DNS</MenuItem>
+            <MenuItem value="zscalar_dlp">Zscaler DLP</MenuItem>
+            <MenuItem value="pan_firewall">PAN Firewall</MenuItem>
+            <MenuItem value="cisco_duo">Cisco Duo</MenuItem>
+            <MenuItem value="gcp_cloud_nat">GCP Cloud NAT</MenuItem>
           </Select>
         </FormControl>
 
@@ -109,20 +153,67 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           </Select>
         </FormControl>
 
-        <TextField
+        <Autocomplete
           size="small"
           fullWidth
-          label="Product Log Category"
+          options={getLogCategoryOptions()}
           value={logCategory}
-          onChange={(e) => setLogCategory(e.target.value)}
-          placeholder="Optional category"
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Description color="primary" />
-              </InputAdornment>
-            ),
+          onChange={(_, newValue) => {
+            setLogCategory(newValue || "");
           }}
+          freeSolo
+          disabled={!productName || !hasCategoriesAvailable()}
+          noOptionsText={
+            !productName
+              ? "Select product first"
+              : !hasCategoriesAvailable()
+              ? "No categories available"
+              : "No matching categories"
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Product Log Category"
+              placeholder={
+                !productName
+                  ? "Select product first"
+                  : !hasCategoriesAvailable()
+                  ? "No categories available"
+                  : "Type category"
+              }
+              InputProps={{
+                ...params.InputProps,
+                startAdornment: (
+                  <>
+                    <InputAdornment position="start">
+                      <Description color="primary" />
+                    </InputAdornment>
+                    {params.InputProps.startAdornment}
+                  </>
+                ),
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  cursor:
+                    !productName || !hasCategoriesAvailable()
+                      ? "not-allowed"
+                      : "text",
+                  "&.Mui-disabled": {
+                    cursor: "not-allowed",
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(0, 0, 0, 0.23) !important",
+                    },
+                  },
+                  "&.Mui-disabled:hover": {
+                    cursor: "not-allowed",
+                  },
+                },
+                "& .MuiOutlinedInput-input.Mui-disabled": {
+                  cursor: "not-allowed",
+                },
+              }}
+            />
+          )}
         />
 
         <Box sx={{ position: "relative", height: "100%" }}>
@@ -189,6 +280,9 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           fontSize: "1rem",
           fontWeight: 600,
           cursor: isProcessing ? "no-drop" : "pointer",
+          "&:disabled": {
+            color: "#9ca3af !important",
+          },
           background:
             "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
           "&:hover": {

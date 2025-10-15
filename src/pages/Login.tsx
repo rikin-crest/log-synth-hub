@@ -21,6 +21,7 @@ import {
 } from "@mui/icons-material";
 import { toast } from "sonner";
 import { loginUser, LoginCredentials } from "../api/auth";
+import CrestLogo from "../assets/Crest_Logo.svg";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ const Login = () => {
         alignItems: "center",
         justifyContent: "center",
         background:
-          "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
+          "linear-gradient(135deg, hsl(220, 30%, 85%), hsl(240, 25%, 90%))",
         position: "relative",
         overflow: "hidden",
       }}
@@ -106,41 +107,78 @@ const Login = () => {
       <Container maxWidth="sm" sx={{ position: "relative", zIndex: 1 }}>
         <Box
           sx={{
-            textAlign: "center",
-            mb: 4,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            mb: 1,
             animation: "slide-in-up 0.6s ease-out",
           }}
         >
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              mb: 2,
+              position: "relative",
+              display: "inline-block",
             }}
           >
-            <AutoAwesome sx={{ fontSize: 48, color: "white", mr: 1 }} />
-            <Typography
-              variant="h3"
-              component="h1"
-              sx={{
-                fontWeight: 700,
-                color: "white",
-                textShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
+            <img
+              src={CrestLogo}
+              alt="Crest Data Logo"
+              style={{
+                maxWidth: "100%",
+                height: "auto",
+                maxHeight: "120px",
+                filter: "drop-shadow(0 4px 16px rgba(135, 56, 237, 0.3))",
+                position: "relative",
+                zIndex: 0,
               }}
-            >
-              Google SecOps Parser Generator
-            </Typography>
+            />
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                pointerEvents: "none",
+                maskImage: `url(${CrestLogo})`,
+                maskSize: "contain",
+                maskRepeat: "no-repeat",
+                maskPosition: "center",
+                WebkitMaskImage: `url(${CrestLogo})`,
+                WebkitMaskSize: "contain",
+                WebkitMaskRepeat: "no-repeat",
+                WebkitMaskPosition: "center",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: "-50%",
+                  left: "-50%",
+                  width: "200%",
+                  height: "200%",
+                  background:
+                    "linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.8) 50%, transparent 70%)",
+                  transform:
+                    "translateX(-100%) translateY(-100%) rotate(45deg)",
+                  animation: "sparkle 5s ease-in-out infinite",
+                  zIndex: 1,
+                },
+                "@keyframes sparkle": {
+                  "0%": {
+                    transform:
+                      "translateX(-100%) translateY(-100%) rotate(45deg)",
+                  },
+                  "50%": {
+                    transform:
+                      "translateX(100%) translateY(100%) rotate(45deg)",
+                  },
+                  "100%": {
+                    transform:
+                      "translateX(-100%) translateY(-100%) rotate(45deg)",
+                  },
+                },
+              }}
+            />
           </Box>
-          <Typography
-            variant="h6"
-            sx={{
-              color: "rgba(255, 255, 255, 0.9)",
-              fontWeight: 400,
-            }}
-          >
-            Log Mapping Intelligence Platform
-          </Typography>
         </Box>
 
         <Card
@@ -151,14 +189,45 @@ const Login = () => {
           }}
         >
           <CardContent sx={{ p: 4 }}>
-            <Typography
-              variant="h5"
-              component="h2"
-              gutterBottom
-              sx={{ fontWeight: 600, mb: 3 }}
+            <Box
+              sx={{
+                textAlign: "center",
+                mb: 4,
+              }}
             >
-              Welcome Back
-            </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mb: 2,
+                }}
+              >
+                <AutoAwesome
+                  sx={{ fontSize: 40, color: "primary.main", mr: 1 }}
+                />
+                <Typography
+                  variant="h4"
+                  component="h1"
+                  sx={{
+                    fontWeight: 700,
+                    color: "primary.main",
+                  }}
+                >
+                  Google SecOps Parser Generator
+                </Typography>
+              </Box>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  color: "text.secondary",
+                  fontWeight: 400,
+                  mb: 3,
+                }}
+              >
+                Log Mapping Intelligence Platform
+              </Typography>
+            </Box>
 
             {error && (
               <Alert severity="error" sx={{ mb: 3 }}>
@@ -226,6 +295,37 @@ const Login = () => {
                 {loading ? "Logging in..." : "Login"}
               </Button>
             </form>
+
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                mt: 3,
+                pr: 0.5,
+                opacity: 0.8,
+                transition: "opacity 0.2s ease-in-out",
+                "&:hover": {
+                  opacity: 1,
+                },
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  background: "linear-gradient(to right, #13044a 2%, #3b168f 25%, #8738ed 90%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  fontWeight: 500,
+                  fontSize: "0.875rem",
+                  letterSpacing: "0.5px",
+                  fontStyle: "italic",
+                }}
+              >
+                By Crest Data
+              </Typography>
+            </Box>
           </CardContent>
         </Card>
       </Container>
