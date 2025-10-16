@@ -13,7 +13,6 @@ import {
   Chip,
 } from "@mui/material";
 import {
-  AutoAwesome,
   Logout,
   Settings,
   Psychology,
@@ -134,9 +133,19 @@ const Dashboard = () => {
       >
         <Toolbar>
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
-            <AutoAwesome sx={{ mr: 1, fontSize: 32 }} />
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Google SecOps Parser Generator
+            <img
+              src="/favicon.ico"
+              alt="Logo"
+              style={{
+                height: "24px",
+                width: "24px",
+                marginRight: "12px",
+                filter: "brightness(0) invert(1)",
+              }}
+            />
+            {/* <AutoAwesome sx={{ mr: 1, fontSize: 32 }} /> */}
+            <Typography variant="h5" sx={{ fontWeight: 600 }}>
+              ParserPilot.ai
             </Typography>
           </Box>
           <IconButton color="inherit" onClick={handleLogout}>
@@ -162,7 +171,8 @@ const Dashboard = () => {
           sx={{
             display: "flex",
             flexDirection: "column",
-            width: "800px",
+            width: "400px",
+            minWidth: "400px",
             gap: 1,
           }}
         >

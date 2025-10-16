@@ -214,7 +214,7 @@ const Login = () => {
                     color: "primary.main",
                   }}
                 >
-                  Google SecOps Parser Generator
+                  ParserPilot.ai
                 </Typography>
               </Box>
               <Typography
@@ -225,7 +225,7 @@ const Login = () => {
                   mb: 3,
                 }}
               >
-                Log Mapping Intelligence Platform
+                Parse. Connect. Deploy - in minutes, not days
               </Typography>
             </Box>
 

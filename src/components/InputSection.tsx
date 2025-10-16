@@ -31,10 +31,10 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
     microsoft_defender: [
       "DeviceLogonEvents",
       "DeviceImageLoadEvents",
-      "DeviceNetworkEvents",
-      "DeviceNetworkInfo",
+      "EmailEvents",
+      "EmailPostDeliveryEvents",
     ],
-    sentinel_one: ["MaliciousFile"],
+    sentinel_one: [],
     jamf: ["jamfThreats"],
     gcp_firewall: [],
     gcp_dns: [],
