@@ -114,71 +114,16 @@ const Login = () => {
             animation: "slide-in-up 0.6s ease-out",
           }}
         >
-          <Box
-            sx={{
-              position: "relative",
-              display: "inline-block",
+          <img
+            src={CrestLogo}
+            alt="Crest Data Logo"
+            style={{
+              maxWidth: "100%",
+              height: "auto",
+              maxHeight: "120px",
+              filter: "drop-shadow(0 4px 16px rgba(135, 56, 237, 0.3))",
             }}
-          >
-            <img
-              src={CrestLogo}
-              alt="Crest Data Logo"
-              style={{
-                maxWidth: "100%",
-                height: "auto",
-                maxHeight: "120px",
-                filter: "drop-shadow(0 4px 16px rgba(135, 56, 237, 0.3))",
-                position: "relative",
-                zIndex: 0,
-              }}
-            />
-            <Box
-              sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                pointerEvents: "none",
-                maskImage: `url(${CrestLogo})`,
-                maskSize: "contain",
-                maskRepeat: "no-repeat",
-                maskPosition: "center",
-                WebkitMaskImage: `url(${CrestLogo})`,
-                WebkitMaskSize: "contain",
-                WebkitMaskRepeat: "no-repeat",
-                WebkitMaskPosition: "center",
-                "&::before": {
-                  content: '""',
-                  position: "absolute",
-                  top: "-50%",
-                  left: "-50%",
-                  width: "200%",
-                  height: "200%",
-                  background:
-                    "linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.8) 50%, transparent 70%)",
-                  transform:
-                    "translateX(-100%) translateY(-100%) rotate(45deg)",
-                  animation: "sparkle 5s ease-in-out infinite",
-                  zIndex: 1,
-                },
-                "@keyframes sparkle": {
-                  "0%": {
-                    transform:
-                      "translateX(-100%) translateY(-100%) rotate(45deg)",
-                  },
-                  "50%": {
-                    transform:
-                      "translateX(100%) translateY(100%) rotate(45deg)",
-                  },
-                  "100%": {
-                    transform:
-                      "translateX(-100%) translateY(-100%) rotate(45deg)",
-                  },
-                },
-              }}
-            />
-          </Box>
+          />
         </Box>
 
         <Card
@@ -313,7 +258,8 @@ const Login = () => {
               <Typography
                 variant="body2"
                 sx={{
-                  background: "linear-gradient(to right, #13044a 2%, #3b168f 25%, #8738ed 90%)",
+                  background:
+                    "linear-gradient(to right, #13044a 2%, #3b168f 25%, #8738ed 90%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
