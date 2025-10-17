@@ -10,7 +10,7 @@ import {
   InputAdornment,
   Autocomplete,
 } from "@mui/material";
-import { CloudUpload, Description, Close } from "@mui/icons-material";
+import { CloudUpload, Description, Close, AutoAwesome } from "@mui/icons-material";
 import { toast } from "sonner";
 
 interface InputSectionProps {
@@ -273,6 +273,7 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
       <Button
         variant="contained"
         size="large"
+        startIcon={<AutoAwesome />}
         onClick={handleSubmit}
         disabled={isProcessing}
         sx={{
