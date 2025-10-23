@@ -79,7 +79,7 @@ const MappingTable = ({
     >
       <CircularProgress size={40} />
       <Typography variant="body1" color="text.secondary">
-        It will take few minutes to generate mappings.
+        It may take a few minutes to generate mappings.
       </Typography>
     </Box>
   );

@@ -7,15 +7,9 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  InputAdornment,
   Autocomplete,
 } from "@mui/material";
-import {
-  CloudUpload,
-  Description,
-  Close,
-  AutoAwesome,
-} from "@mui/icons-material";
+import { CloudUpload, Close, AutoAwesome } from "@mui/icons-material";
 import { toast } from "sonner";
 
 interface ProductOption {
@@ -154,6 +148,36 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           onChange={(_, newValue) => handleProductNameChange(newValue?.value)}
           isOptionEqualToValue={(option, value) => option.value === value.value}
           getOptionLabel={(option) => option.label}
+          disablePortal={false}
+          ListboxProps={{
+            style: {
+              maxHeight: 200,
+              overflow: "auto",
+              wordBreak: "break-word",
+              whiteSpace: "normal",
+            },
+          }}
+          slotProps={{
+            paper: {
+              style: {
+                maxHeight: 200,
+                overflow: "auto",
+                zIndex: 1400,
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+                minWidth: "250px",
+              },
+            },
+          }}
+          componentsProps={{
+            popper: {
+              style: {
+                zIndex: 1400,
+              },
+              disablePortal: false,
+              placement: "bottom-start",
+            },
+          }}
           renderInput={(params) => (
             <TextField {...params} label="Product Name" required />
           )}
@@ -180,8 +204,39 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           onChange={(_, newValue) => {
             setLogCategory(newValue || "");
           }}
-          freeSolo
           disabled={!productName || !hasCategoriesAvailable()}
+          freeSolo
+          getOptionLabel={(option) => option}
+          disablePortal={false}
+          ListboxProps={{
+            style: {
+              maxHeight: 200,
+              overflow: "auto",
+              wordBreak: "break-word",
+              whiteSpace: "normal",
+            },
+          }}
+          slotProps={{
+            paper: {
+              style: {
+                maxHeight: 200,
+                overflow: "auto",
+                zIndex: 1400,
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+                minWidth: "250px",
+              },
+            },
+          }}
+          componentsProps={{
+            popper: {
+              style: {
+                zIndex: 1400,
+              },
+              disablePortal: false,
+              placement: "bottom-start",
+            },
+          }}
           noOptionsText={
             !productName
               ? "Select product first"
@@ -200,17 +255,6 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
                   ? "No categories available"
                   : "Type category"
               }
-              InputProps={{
-                ...params.InputProps,
-                startAdornment: (
-                  <>
-                    <InputAdornment position="start">
-                      <Description color="primary" />
-                    </InputAdornment>
-                    {params.InputProps.startAdornment}
-                  </>
-                ),
-              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   cursor:
