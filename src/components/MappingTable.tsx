@@ -248,8 +248,8 @@ const MappingTable = ({
             }}
             sx={{
               border: "1px solid rgba(224, 224, 224, 1)",
-              height: 340,
               backgroundColor: "white",
+              height: "100%",
               "& .MuiDataGrid-columnHeaders": {
                 fontWeight: 600,
                 backgroundColor: "background.default",

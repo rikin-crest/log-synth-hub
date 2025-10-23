@@ -332,7 +332,7 @@ const Dashboard = () => {
           }}
         >
           {/* Mapping Table */}
-          <Box sx={{ height: "60vh", overflow: "visible", width: "100%" }}>
+          <Box sx={{ height: "100%", overflow: "visible", width: "100%" }}>
             <MappingTable
               data={mappingData}
               columns={getColumns(mappingData)}
@@ -341,7 +341,7 @@ const Dashboard = () => {
           </Box>
 
           {/* Feedback Section */}
-          <Box sx={{ height: "28vh", overflow: "visible", width: "100%" }}>
+          <Box sx={{ height: "200px", overflow: "visible", width: "100%" }}>
             <FeedbackSection
               onRerun={handleRerun}
               onConfGenerate={handleConfGenerate}
