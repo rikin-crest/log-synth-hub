@@ -10,13 +10,53 @@ import {
   InputAdornment,
   Autocomplete,
 } from "@mui/material";
-import { CloudUpload, Description, Close, AutoAwesome } from "@mui/icons-material";
+import {
+  CloudUpload,
+  Description,
+  Close,
+  AutoAwesome,
+} from "@mui/icons-material";
 import { toast } from "sonner";
+
+interface ProductOption {
+  label: string;
+  value: string;
+}
 
 interface InputSectionProps {
   onSubmit: (data: any) => void;
   isProcessing: boolean;
 }
+
+const productOptions: ProductOption[] = [
+  { label: "Microsoft Defender", value: "microsoft_defender" },
+  { label: "SentinelOne", value: "sentinel_one" },
+  { label: "Jamf", value: "jamf" },
+  { label: "GCP Firewall", value: "gcp_firewall" },
+  { label: "GCP DNS", value: "gcp_dns" },
+  { label: "Zscaler DLP", value: "zscalar_dlp" },
+  { label: "PAN Firewall", value: "pan_firewall" },
+  { label: "Cisco Duo", value: "cisco_duo" },
+  { label: "GCP Cloud NAT", value: "gcp_cloud_nat" },
+];
+
+// Product to log category mapping
+const productLogCategories: Record<string, string[]> = {
+  microsoft_defender: [
+    "DeviceLogonEvents",
+    "DeviceImageLoadEvents",
+    "EmailEvents",
+    "EmailPostDeliveryEvents",
+  ],
+  sentinel_one: [],
+  jamf: ["jamfThreats"],
+  gcp_firewall: [],
+  gcp_dns: [],
+  zscalar_dlp: [],
+  pan_firewall: [],
+  cisco_duo: [],
+  gcp_cloud_nat: [],
+};
 
 const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
   const [productName, setProductName] = useState("");
@@ -25,24 +65,6 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
   const [fileName, setFileName] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Product to log category mapping
-  const productLogCategories: Record<string, string[]> = {
-    microsoft_defender: [
-      "DeviceLogonEvents",
-      "DeviceImageLoadEvents",
-      "EmailEvents",
-      "EmailPostDeliveryEvents",
-    ],
-    sentinel_one: [],
-    jamf: ["jamfThreats"],
-    gcp_firewall: [],
-    gcp_dns: [],
-    zscalar_dlp: [],
-    pan_firewall: [],
-    cisco_duo: [],
-    gcp_cloud_nat: [],
-  };
 
   // Get log category options based on selected product
   const getLogCategoryOptions = () => {
@@ -79,8 +101,8 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
     toast.success("File removed successfully");
   };
 
-  const handleProductNameChange = (value: string) => {
-    setProductName(value);
+  const handleProductNameChange = (value: string | null) => {
+    setProductName(value ?? "");
     // Reset log category when product changes
     setLogCategory("");
   };
@@ -121,24 +143,21 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           gap: 2,
         }}
       >
-        <FormControl fullWidth size="small" required>
-          <InputLabel>Product Name</InputLabel>
-          <Select
-            value={productName}
-            onChange={(e) => handleProductNameChange(e.target.value)}
-            label="Product Name"
-          >
-            <MenuItem value="microsoft_defender">Microsoft Defender</MenuItem>
-            <MenuItem value="sentinel_one">SentinelOne</MenuItem>
-            <MenuItem value="jamf">Jamf</MenuItem>
-            <MenuItem value="gcp_firewall">GCP Firewall</MenuItem>
-            <MenuItem value="gcp_dns">GCP DNS</MenuItem>
-            <MenuItem value="zscalar_dlp">Zscaler DLP</MenuItem>
-            <MenuItem value="pan_firewall">PAN Firewall</MenuItem>
-            <MenuItem value="cisco_duo">Cisco Duo</MenuItem>
-            <MenuItem value="gcp_cloud_nat">GCP Cloud NAT</MenuItem>
-          </Select>
-        </FormControl>
+        <Autocomplete
+          size="small"
+          fullWidth
+          options={productOptions}
+          value={
+            productOptions.find((option) => option.value === productName) ||
+            null
+          }
+          onChange={(_, newValue) => handleProductNameChange(newValue?.value)}
+          isOptionEqualToValue={(option, value) => option.value === value.value}
+          getOptionLabel={(option) => option.label}
+          renderInput={(params) => (
+            <TextField {...params} label="Product Name" required />
+          )}
+        />
 
         <FormControl fullWidth size="small" required>
           <InputLabel>Log Format</InputLabel>
