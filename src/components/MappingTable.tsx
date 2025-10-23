@@ -9,6 +9,8 @@ import {
   CircularProgress,
   TextField,
   InputAdornment,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { TableChart, Download, Search } from "@mui/icons-material";
@@ -23,18 +25,21 @@ interface MappingTableProps {
   columns: Column[];
   loading?: boolean;
 }
-
 const MappingTable = ({
   data,
   columns,
   loading = false,
 }: MappingTableProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [searchTerm, setSearchTerm] = React.useState("");
   const gridColumns: GridColDef[] = columns.map((col) => ({
     field: col.key,
     headerName: col.name,
     flex: 1,
-    minWidth: 150,
+    minWidth: 120,
+    maxWidth: 300,
+    resizable: true,
     sortable: true,
     renderCell: (params) => (
       <Box
@@ -87,19 +92,23 @@ const MappingTable = ({
   const exportToCsv = () => {
     if (filteredData.length === 0) return;
 
+    // Helper function to escape CSV values
+    const escapeCsvValue = (value: any): string => {
+      const strValue = String(value ?? "");
+      if (
+        strValue.includes(",") ||
+        strValue.includes('"') ||
+        strValue.includes("\n")
+      ) {
+        return `"${strValue.replace(/"/g, '""')}"`;
+      }
+      return strValue;
+    };
+
     const csvContent = [
-      columns.map((col) => col.name).join(","), // Header row with display names
+      columns.map((col) => escapeCsvValue(col.name)).join(","), // Header row with escaped names
       ...filteredData.map((row) =>
-        columns
-          .map((col) => {
-            const value = row[col.key] ?? "";
-            // Escape commas and quotes in CSV
-            return typeof value === "string" &&
-              (value.includes(",") || value.includes('"'))
-              ? `"${value.replace(/"/g, '""')}"`
-              : value;
-          })
-          .join(",")
+        columns.map((col) => escapeCsvValue(row[col.key])).join(",")
       ),
     ].join("\n");
 
@@ -112,6 +121,9 @@ const MappingTable = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    // Cleanup: revoke the object URL to prevent memory leaks
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -138,13 +150,14 @@ const MappingTable = ({
         {/* Header */}
         <Box
           sx={{
-            px: 3,
-            pt: 3,
-            pb: 2,
+            px: { xs: 2, md: 3 },
+            pt: { xs: 2, md: 3 },
+            pb: { xs: 1.5, md: 2 },
             display: "flex",
-            alignItems: "center",
+            flexDirection: { xs: "column", md: "row" },
+            alignItems: { xs: "stretch", md: "center" },
             flexShrink: 0,
-            gap: 2,
+            gap: { xs: 1.5, md: 2 },
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -156,7 +169,13 @@ const MappingTable = ({
 
           {/* Search Bar */}
           {data.length > 0 && (
-            <Box sx={{ flexGrow: 1, maxWidth: 400 }}>
+            <Box
+              sx={{
+                flexGrow: 1,
+                maxWidth: { xs: "100%", md: 400 },
+                order: { xs: 2, md: 0 },
+              }}
+            >
               <TextField
                 fullWidth
                 size="small"
@@ -192,7 +211,11 @@ const MappingTable = ({
             direction="row"
             spacing={2}
             alignItems="center"
-            sx={{ ml: "auto" }}
+            sx={{
+              ml: { xs: 0, md: "auto" },
+              order: { xs: 3, md: 0 },
+              justifyContent: { xs: "flex-end", md: "flex-start" },
+            }}
           >
             {data.length > 0 && (
               <>
@@ -231,7 +254,15 @@ const MappingTable = ({
         </Box>
 
         {/* DataGrid */}
-        <Box sx={{ flexGrow: 1, px: 3, pb: 3 }}>
+        <Box
+          sx={{
+            flexGrow: 1,
+            px: { xs: 2, md: 3 },
+            pb: { xs: 2, md: 3 },
+            width: "100%",
+            overflow: "hidden",
+          }}
+        >
           <DataGrid
             rows={gridRows}
             columns={gridColumns}
@@ -249,16 +280,15 @@ const MappingTable = ({
             sx={{
               border: "1px solid rgba(224, 224, 224, 1)",
               backgroundColor: "white",
-              height: "100%",
+              height: { xs: "300px", md: "100%" },
               "& .MuiDataGrid-columnHeaders": {
                 fontWeight: 600,
                 backgroundColor: "background.default",
+                fontSize: { xs: "0.75rem", md: "0.875rem" },
               },
               "& .MuiDataGrid-cell": {
-                borderRight: "1px solid rgba(224, 224, 224, 0.5)",
-                "&:last-child": {
-                  borderRight: "none",
-                },
+                fontSize: { xs: "0.75rem", md: "0.875rem" },
+                padding: { xs: "4px 8px", md: "8px 16px" },
               },
               "& .MuiDataGrid-columnHeader": {
                 borderRight: "1px solid rgba(224, 224, 224, 0.8)",
@@ -282,6 +312,12 @@ const MappingTable = ({
               },
               "& .MuiDataGrid-filler": {
                 display: "none",
+              },
+              "& .MuiDataGrid-virtualScroller": {
+                overflow: "auto",
+              },
+              "& .MuiDataGrid-main": {
+                overflow: "hidden",
               },
               "& .MuiDataGrid-scrollbarFiller": {
                 display: "none",

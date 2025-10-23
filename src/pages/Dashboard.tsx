@@ -1,28 +1,21 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import {
   Box,
-  Container,
   Typography,
   AppBar,
   Toolbar,
   IconButton,
   Avatar,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Chip,
-  CircularProgress,
+  Tabs,
+  Tab,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
-import {
-  Logout,
-  Settings,
-  Psychology,
-  AccountTree,
-  ExpandMore,
-} from "@mui/icons-material";
+import { Logout, Settings, Psychology, AccountTree } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { logoutUser } from "../api/auth";
+import { logoutUser, isAuthenticated } from "../api/auth";
 import InputSection from "../components/InputSection";
 
 // Lazy load heavy components
@@ -30,6 +23,9 @@ const ChainOfThoughts = lazy(() => import("../components/ChainOfThoughts"));
 const WorkflowGraph = lazy(() => import("../components/WorkflowGraph"));
 const MappingTable = lazy(() => import("../components/MappingTable"));
 const FeedbackSection = lazy(() => import("../components/FeedbackSection"));
+
+// Import LoadingFallback directly (not lazy since it's used in fallbacks)
+import LoadingFallback from "../components/LoadingFallback";
 import { generateConf, resumeWorkflow, startWorkflow } from "@/api/workflow";
 import {
   GenerateConfPayload,
@@ -38,16 +34,26 @@ import {
 } from "@/components/types";
 import { addToSessionStorage, getFromSessionStorage } from "@/lib/session";
 import { getColumns } from "@/lib/utils";
+import image from "../assets/image.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [isProcessing, setIsProcessing] = useState(false);
   const [thoughtSteps, setThoughtSteps] = useState<string[]>([]);
   const [mappingData, setMappingData] = useState<unknown[]>([]);
-  const [expandedPanel, setExpandedPanel] = useState<string | false>(
-    "thoughts"
-  );
-  const [workflowImageUrl] = useState<string | undefined>();
+  const [activeTab, setActiveTab] = useState(0);
+  const [workflowImageUrl, setWorkflowImageUrl] = useState<
+    string | undefined
+  >();
+
+  // Check authentication on mount
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate("/", { replace: true });
+    }
+  }, [navigate]);
 
   const handleLogout = () => {
     logoutUser();
@@ -69,6 +75,7 @@ const Dashboard = () => {
     addToSessionStorage("thread_id", result["thread_id"]);
 
     setMappingData(result.output || []);
+    setWorkflowImageUrl(image);
     setIsProcessing(false);
   };
 
@@ -124,7 +131,13 @@ const Dashboard = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: "background.default", overflow: "hidden !important" }}>
+    <Box
+      sx={{
+        bgcolor: "background.default",
+        overflow: "hidden !important",
+        height: "100vh",
+      }}
+    >
       {/* Header */}
       <AppBar
         position="sticky"
@@ -134,39 +147,74 @@ const Dashboard = () => {
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <Toolbar>
+        <Toolbar
+          sx={{
+            minHeight: { xs: 56, md: 64 },
+            px: { xs: 2, sm: 3 },
+          }}
+        >
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
             <img
               src="/favicon.ico"
               alt="Logo"
               style={{
-                height: "24px",
-                width: "24px",
-                marginRight: "12px",
+                height: isMobile ? "20px" : "24px",
+                width: isMobile ? "20px" : "24px",
+                marginRight: isMobile ? "8px" : "12px",
                 filter: "brightness(0) invert(1)",
               }}
             />
-            {/* <AutoAwesome sx={{ mr: 1, fontSize: 32 }} /> */}
-            <Typography variant="h5" sx={{ fontWeight: 600 }}>
-              ParserPilot.ai
+            <Typography
+              variant={isMobile ? "h6" : "h5"}
+              sx={{
+                fontWeight: 600,
+                fontSize: { xs: "1.1rem", sm: "1.25rem", md: "1.5rem" },
+              }}
+            >
+              {isMobile ? "Parser" : "ParserPilot.ai"}
             </Typography>
           </Box>
-          <IconButton color="inherit" onClick={handleLogout}>
-            <Logout />
+          <IconButton
+            color="inherit"
+            onClick={handleLogout}
+            size={isMobile ? "small" : "medium"}
+          >
+            <Logout sx={{ fontSize: { xs: 20, md: 24 } }} />
           </IconButton>
-          <Avatar sx={{ ml: 2, bgcolor: "rgba(255, 255, 255, 0.2)" }}>U</Avatar>
+          <Avatar
+            sx={{
+              ml: { xs: 1, md: 2 },
+              bgcolor: "rgba(255, 255, 255, 0.2)",
+              width: { xs: 32, md: 40 },
+              height: { xs: 32, md: 40 },
+              fontSize: { xs: "0.875rem", md: "1rem" },
+            }}
+          >
+            U
+          </Avatar>
         </Toolbar>
       </AppBar>
 
       {/* Main Content */}
-      <Container
-        maxWidth="xl"
+      <Box
         sx={{
-          py: 1,
-          height: "91vh",
-          overflow: "auto",
+          py: { xs: 1, md: 1 },
+          px: { xs: 1, sm: 2 },
+          minHeight: {
+            xs: "calc(100vh - 56px)",
+            md: "calc(100vh - 64px)",
+          },
+          height: {
+            xs: "calc(100vh - 56px)",
+            md: "calc(100vh - 64px)",
+          },
+          overflowY: "auto",
+          overflowX: "hidden",
           display: "flex",
-          gap: 3,
+          flexDirection: { xs: "column", md: "row" },
+          gap: { xs: 1, md: 1 },
+          width: "100%",
+          maxWidth: "none",
         }}
       >
         {/* Left Column - Configuration & Analysis */}
@@ -174,9 +222,11 @@ const Dashboard = () => {
           sx={{
             display: "flex",
             flexDirection: "column",
-            width: "400px",
-            minWidth: "400px",
+            width: { xs: "100%", md: "400px" },
+            minWidth: { xs: "auto", md: "400px" },
+            minHeight: { xs: "auto", md: "600px" },
             gap: 1,
+            order: { xs: 1, md: 1 },
           }}
         >
           {/* Input Section - Standalone */}
@@ -202,131 +252,125 @@ const Dashboard = () => {
             />
           </Box>
 
-          {/* Chain of Thoughts Accordion */}
-          <Accordion
-            expanded={expandedPanel === "thoughts"}
-            onChange={() =>
-              setExpandedPanel(
-                expandedPanel === "thoughts" ? false : "thoughts"
-              )
-            }
+          {/* Analysis Section with Tabs */}
+          <Box
             sx={{
               background:
                 "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 1))",
               border: "1px solid hsl(var(--border))",
-              borderRadius: "12px !important",
-              "&:before": {
-                display: "none",
-              },
-              "& .MuiAccordionSummary-root": {
-                borderRadius: "12px",
-              },
-              "& .MuiAccordionDetails-root": {
-                borderRadius: "0 0 12px 12px",
-              },
+              borderRadius: "12px",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              flex: 1,
             }}
           >
-            <AccordionSummary
-              expandIcon={<ExpandMore />}
+            {/* Tab Bar */}
+            <Tabs
+              value={activeTab}
+              onChange={(_, newValue) => setActiveTab(newValue)}
+              variant={isMobile ? "fullWidth" : "standard"}
               sx={{
-                "& .MuiAccordionSummary-content": {
-                  alignItems: "center",
-                  gap: 1,
+                borderBottom: "1px solid hsl(var(--border))",
+                "& .MuiTab-root": {
+                  minHeight: { xs: 48, md: 56 },
+                  textTransform: "none",
+                  fontSize: { xs: "0.85rem", md: "0.95rem" },
+                  fontWeight: 600,
+                  px: { xs: 1, md: 2 },
                 },
               }}
             >
-              <Psychology sx={{ color: "primary.main" }} />
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Chain of Thoughts
-              </Typography>
-              {thoughtSteps.length > 0 && (
-                <Chip
-                  label={`${thoughtSteps.length} steps`}
-                  size="small"
-                  color="primary"
-                  variant="outlined"
-                  sx={{ ml: 1 }}
-                />
-              )}
-            </AccordionSummary>
-            <AccordionDetails
-              sx={{
-                height: 245,
-                overflow: "auto",
-                p: 2,
-              }}
-            >
-              <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress size={24} /></Box>}>
-                <ChainOfThoughts
-                  steps={thoughtSteps}
-                  isProcessing={isProcessing}
-                />
-              </Suspense>
-            </AccordionDetails>
-          </Accordion>
+              <Tab
+                icon={<Psychology sx={{ fontSize: { xs: 18, md: 24 } }} />}
+                iconPosition={isMobile ? "top" : "start"}
+                label={
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: { xs: 0.5, md: 1 },
+                      flexDirection: { xs: "column", sm: "row" },
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontSize: { xs: "0.75rem", md: "0.875rem" },
+                        textAlign: { xs: "center", sm: "left" },
+                      }}
+                    >
+                      {isMobile ? "Thoughts" : "Chain of Thoughts"}
+                    </Typography>
+                    {thoughtSteps.length > 0 && (
+                      <Chip
+                        label={`${thoughtSteps.length} steps`}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                        sx={{ fontSize: { xs: "0.65rem", md: "0.75rem" } }}
+                      />
+                    )}
+                  </Box>
+                }
+              />
+              <Tab
+                icon={<AccountTree sx={{ fontSize: { xs: 18, md: 24 } }} />}
+                iconPosition={isMobile ? "top" : "start"}
+                label={
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: { xs: 0.5, md: 1 },
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontSize: { xs: "0.75rem", md: "0.875rem" },
+                        textAlign: { xs: "center", sm: "left" },
+                      }}
+                    >
+                      {isMobile ? "Workflow" : "Workflow Graph"}
+                    </Typography>
+                  </Box>
+                }
+              />
+            </Tabs>
 
-          {/* Workflow Graph Accordion */}
-          <Accordion
-            expanded={expandedPanel === "workflow"}
-            onChange={() =>
-              setExpandedPanel(
-                expandedPanel === "workflow" ? false : "workflow"
-              )
-            }
-            sx={{
-              background:
-                "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 1))",
-              border: "1px solid hsl(var(--border))",
-              borderRadius: "12px !important",
-              "&:before": {
-                display: "none",
-              },
-              "& .MuiAccordionSummary-root": {
-                borderRadius: "12px",
-              },
-              "& .MuiAccordionDetails-root": {
-                borderRadius: "0 0 12px 12px",
-              },
-            }}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMore />}
+            {/* Tab Content */}
+            <Box
               sx={{
-                "& .MuiAccordionSummary-content": {
-                  alignItems: "center",
-                  gap: 1,
-                },
-              }}
-            >
-              <AccountTree sx={{ color: "primary.main" }} />
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Workflow Graph
-              </Typography>
-              {workflowImageUrl && (
-                <Chip
-                  label="Generated"
-                  size="small"
-                  color="success"
-                  variant="outlined"
-                  sx={{ ml: 1 }}
-                />
-              )}
-            </AccordionSummary>
-            <AccordionDetails
-              sx={{
-                height: 260,
+                p: { xs: 1.5, md: 2 },
                 overflow: "auto",
-                p: 2,
+                flex: 1,
+                minHeight: { xs: 200, md: 245 },
               }}
             >
-              <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress size={24} /></Box>}>
-                <WorkflowGraph
-                  imageUrl={workflowImageUrl}
-                  isLoading={isProcessing}
-                />
-              </Suspense>
-            </AccordionDetails>
-          </Accordion>
+              {activeTab === 0 && (
+                <Suspense
+                  fallback={
+                    <LoadingFallback message="Loading chain of thoughts..." />
+                  }
+                >
+                  <ChainOfThoughts
+                    steps={thoughtSteps}
+                    isProcessing={isProcessing}
+                  />
+                </Suspense>
+              )}
+              {activeTab === 1 && (
+                <Suspense
+                  fallback={
+                    <LoadingFallback message="Loading workflow graph..." />
+                  }
+                >
+                  <WorkflowGraph imageUrl={image} isLoading={false} />
+                </Suspense>
+              )}
+            </Box>
+          </Box>
         </Box>
 
         {/* Right Column - Results & Feedback */}
@@ -335,12 +379,35 @@ const Dashboard = () => {
             display: "flex",
             flexDirection: "column",
             width: "100%",
+            minWidth: { xs: "auto", md: "400px" },
+            minHeight: { xs: "auto", md: "600px" },
             gap: 1,
+            order: { xs: 2, md: 2 },
           }}
         >
           {/* Mapping Table */}
-          <Box sx={{ height: "100%", overflow: "visible", width: "100%" }}>
-            <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}><CircularProgress size={32} /></Box>}>
+          <Box
+            sx={{
+              height: {
+                xs: "400px", // Mobile
+                md: "100%", // Desktop - flexible
+              },
+              minHeight: { xs: "400px", md: "auto" },
+              overflow: "hidden",
+              width: "100%",
+              maxWidth: "100%",
+              flex: { xs: "0 0 auto", md: 1 },
+            }}
+          >
+            <Suspense
+              fallback={
+                <LoadingFallback
+                  message="Loading mapping table..."
+                  size={40}
+                  height="100%"
+                />
+              }
+            >
               <MappingTable
                 data={mappingData}
                 columns={getColumns(mappingData)}
@@ -350,8 +417,22 @@ const Dashboard = () => {
           </Box>
 
           {/* Feedback Section */}
-          <Box sx={{ height: "200px", overflow: "visible", width: "100%" }}>
-            <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress size={24} /></Box>}>
+          <Box
+            sx={{
+              height: { xs: "100%", md: "200px" },
+              overflow: "visible",
+              width: "100%",
+            }}
+          >
+            <Suspense
+              fallback={
+                <LoadingFallback
+                  message="Loading feedback section..."
+                  size={28}
+                  height="100%"
+                />
+              }
+            >
               <FeedbackSection
                 onRerun={handleRerun}
                 onConfGenerate={handleConfGenerate}
@@ -360,7 +441,7 @@ const Dashboard = () => {
             </Suspense>
           </Box>
         </Box>
-      </Container>
+      </Box>
     </Box>
   );
 };

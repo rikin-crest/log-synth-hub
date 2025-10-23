@@ -5,7 +5,7 @@ import {
 } from "@/components/types";
 import { API_CONFIG } from "./api";
 import { toast } from "sonner";
-import { getAuthHeader } from "./auth";
+import { getAuthHeader, handleUnauthorized } from "./auth";
 
 export const startWorkflow = async (
   payload: FormData
@@ -31,6 +31,7 @@ export const startWorkflow = async (
           break;
         case 401:
           errorMessage = "Authentication failed. Please log in again.";
+          handleUnauthorized();
           break;
         case 403:
           errorMessage =
@@ -102,6 +103,7 @@ export const resumeWorkflow = async (
           break;
         case 401:
           errorMessage = "Authentication failed. Please log in again.";
+          handleUnauthorized();
           break;
         case 403:
           errorMessage =
@@ -164,6 +166,10 @@ export const generateConf = async (
     );
 
     if (!response.ok) {
+      if (response.status === 401) {
+        handleUnauthorized();
+        return;
+      }
       throw new Error("Failed to generate configuration file!");
     }
 

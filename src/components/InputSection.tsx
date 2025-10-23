@@ -42,7 +42,7 @@ const productLogCategories: Record<string, string[]> = {
     "EmailEvents",
     "EmailPostDeliveryEvents",
   ],
-  sentinel_one: [],
+  sentinel_one: ["MaliciousFile"],
   jamf: ["jamfThreats"],
   gcp_firewall: [],
   gcp_dns: [],
@@ -133,8 +133,8 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 2,
+          gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+          gap: { xs: 1.5, sm: 2 },
         }}
       >
         <Autocomplete
@@ -253,7 +253,7 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
                   ? "Select product first"
                   : !hasCategoriesAvailable()
                   ? "No categories available"
-                  : "Type category"
+                  : "Type here"
               }
               sx={{
                 "& .MuiOutlinedInput-root": {
@@ -287,7 +287,8 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
             startIcon={<CloudUpload />}
             sx={{
               p: 0,
-              height: "100%",
+              height: { xs: "40px", sm: "100%" },
+              minHeight: "40px",
               borderStyle: "dashed",
               borderWidth: 2,
               wordBreak: "break-word",

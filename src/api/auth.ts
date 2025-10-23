@@ -75,7 +75,6 @@ export const logoutUser = () => {
 };
 
 export const getAuthToken = (): string | null => {
-  console.log(localStorage.getItem("access_token"))
   return localStorage.getItem("access_token");
 };
 
@@ -94,4 +93,10 @@ export const getAuthHeader = (): Record<string, string> => {
 
 export const isAuthenticated = (): boolean => {
   return !!getAuthToken();
+};
+
+// Helper function to handle 401 errors and redirect to login
+export const handleUnauthorized = () => {
+  logoutUser();
+  window.location.href = "/";
 };

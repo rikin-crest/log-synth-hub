@@ -1,7 +1,12 @@
-import { Box, Typography, CircularProgress, Dialog, IconButton } from "@mui/material";
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  Dialog,
+  IconButton,
+} from "@mui/material";
 import { AccountTree, Close, Fullscreen } from "@mui/icons-material";
 import { useState } from "react";
-import image from "../assets/image.png"
 
 interface WorkflowGraphProps {
   imageUrl?: string;
@@ -28,7 +33,7 @@ const WorkflowGraph = ({ imageUrl, isLoading = false }: WorkflowGraphProps) => {
         height: "100%",
       }}
     >
-      {/* {!imageUrl && !isLoading && (
+      {!imageUrl && !isLoading && (
         <Box
           sx={{
             display: "flex",
@@ -44,9 +49,9 @@ const WorkflowGraph = ({ imageUrl, isLoading = false }: WorkflowGraphProps) => {
             Workflow graph will appear here after processing
           </Typography>
         </Box>
-      )} */}
+      )}
 
-      {/* {isLoading && (
+      {isLoading && (
         <Box
           sx={{
             display: "flex",
@@ -62,15 +67,15 @@ const WorkflowGraph = ({ imageUrl, isLoading = false }: WorkflowGraphProps) => {
             Generating workflow graph...
           </Typography>
         </Box>
-      )} */}
+      )}
 
-      
+      {imageUrl && !isLoading && (
         <Box
           sx={{
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            width: '100%',
+            width: "100%",
             height: "100%",
             overflow: "hidden",
             position: "relative",
@@ -87,7 +92,7 @@ const WorkflowGraph = ({ imageUrl, isLoading = false }: WorkflowGraphProps) => {
             onClick={handleFullscreenOpen}
           >
             <img
-              src={image}
+              src={imageUrl}
               alt="Workflow Graph"
               style={{
                 maxWidth: "100%",
@@ -117,58 +122,58 @@ const WorkflowGraph = ({ imageUrl, isLoading = false }: WorkflowGraphProps) => {
             </IconButton>
           </Box>
         </Box>
+      )}
 
-        {/* Fullscreen Dialog */}
-        <Dialog
-          open={fullscreenOpen}
-          onClose={handleFullscreenClose}
-          maxWidth={false}
-          fullScreen
+      {/* Fullscreen Dialog */}
+      <Dialog
+        open={fullscreenOpen}
+        onClose={handleFullscreenClose}
+        maxWidth={false}
+        fullScreen
+        sx={{
+          "& .MuiDialog-paper": {
+            backgroundColor: "rgba(0, 0, 0, 0.9)",
+          },
+        }}
+      >
+        <Box
           sx={{
-            "& .MuiDialog-paper": {
-              backgroundColor: "rgba(0, 0, 0, 0.9)",
-            },
+            position: "relative",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 2,
           }}
         >
-          <Box
+          <IconButton
+            onClick={handleFullscreenClose}
             sx={{
-              position: "relative",
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              padding: 2,
+              position: "absolute",
+              top: 16,
+              right: 16,
+              backgroundColor: "rgba(255, 255, 255, 0.1)",
+              color: "white",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.2)",
+              },
+              zIndex: 1,
             }}
           >
-            <IconButton
-              onClick={handleFullscreenClose}
-              sx={{
-                position: "absolute",
-                top: 16,
-                right: 16,
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                color: "white",
-                "&:hover": {
-                  backgroundColor: "rgba(255, 255, 255, 0.2)",
-                },
-                zIndex: 1,
-              }}
-            >
-              <Close />
-            </IconButton>
-            <img
-              src={image}
-              alt="Workflow Graph - Fullscreen"
-              style={{
-                maxWidth: "100%",
-                maxHeight: "100%",
-                objectFit: "contain",
-              }}
-            />
-          </Box>
-        </Dialog>
-      
+            <Close />
+          </IconButton>
+          <img
+            src={imageUrl}
+            alt="Workflow Graph - Fullscreen"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "100%",
+              objectFit: "contain",
+            }}
+          />
+        </Box>
+      </Dialog>
     </Box>
   );
 };
