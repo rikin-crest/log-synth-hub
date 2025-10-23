@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import {
   Box,
   Container,
@@ -11,6 +11,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import {
   Logout,
@@ -23,10 +24,12 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { logoutUser } from "../api/auth";
 import InputSection from "../components/InputSection";
-import ChainOfThoughts from "../components/ChainOfThoughts";
-import WorkflowGraph from "../components/WorkflowGraph";
-import MappingTable from "../components/MappingTable";
-import FeedbackSection from "../components/FeedbackSection";
+
+// Lazy load heavy components
+const ChainOfThoughts = lazy(() => import("../components/ChainOfThoughts"));
+const WorkflowGraph = lazy(() => import("../components/WorkflowGraph"));
+const MappingTable = lazy(() => import("../components/MappingTable"));
+const FeedbackSection = lazy(() => import("../components/FeedbackSection"));
 import { generateConf, resumeWorkflow, startWorkflow } from "@/api/workflow";
 import {
   GenerateConfPayload,
@@ -253,10 +256,12 @@ const Dashboard = () => {
                 p: 2,
               }}
             >
-              <ChainOfThoughts
-                steps={thoughtSteps}
-                isProcessing={isProcessing}
-              />
+              <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress size={24} /></Box>}>
+                <ChainOfThoughts
+                  steps={thoughtSteps}
+                  isProcessing={isProcessing}
+                />
+              </Suspense>
             </AccordionDetails>
           </Accordion>
 
@@ -314,10 +319,12 @@ const Dashboard = () => {
                 p: 2,
               }}
             >
-              <WorkflowGraph
-                imageUrl={workflowImageUrl}
-                isLoading={isProcessing}
-              />
+              <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress size={24} /></Box>}>
+                <WorkflowGraph
+                  imageUrl={workflowImageUrl}
+                  isLoading={isProcessing}
+                />
+              </Suspense>
             </AccordionDetails>
           </Accordion>
         </Box>
@@ -333,20 +340,24 @@ const Dashboard = () => {
         >
           {/* Mapping Table */}
           <Box sx={{ height: "100%", overflow: "visible", width: "100%" }}>
-            <MappingTable
-              data={mappingData}
-              columns={getColumns(mappingData)}
-              loading={isProcessing}
-            />
+            <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}><CircularProgress size={32} /></Box>}>
+              <MappingTable
+                data={mappingData}
+                columns={getColumns(mappingData)}
+                loading={isProcessing}
+              />
+            </Suspense>
           </Box>
 
           {/* Feedback Section */}
           <Box sx={{ height: "200px", overflow: "visible", width: "100%" }}>
-            <FeedbackSection
-              onRerun={handleRerun}
-              onConfGenerate={handleConfGenerate}
-              disabled={mappingData.length === 0}
-            />
+            <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress size={24} /></Box>}>
+              <FeedbackSection
+                onRerun={handleRerun}
+                onConfGenerate={handleConfGenerate}
+                disabled={mappingData.length === 0}
+              />
+            </Suspense>
           </Box>
         </Box>
       </Container>
