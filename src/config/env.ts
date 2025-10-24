@@ -7,16 +7,16 @@ interface EnvConfig {
   apiBaseUrl: string;
 }
 
-const getEnvVar = (key: string, defaultValue?: string): string => {
+const getEnvVar = (key: string): string => {
   const value = import.meta.env[key];
 
-  if (!value && !defaultValue) {
-    console.warn(`Environment variable ${key} is not set`);
+  if (!value) {
+    throw new Error(`Environment variable ${key} is not set. Please check your .env file.`);
   }
 
-  return value || defaultValue || "";
+  return value;
 };
 
 export const env: EnvConfig = {
-  apiBaseUrl: getEnvVar("VITE_API_BASE_URL", "https://10.50.1.12:8002"),
+  apiBaseUrl: getEnvVar("VITE_API_BASE_URL"),
 };

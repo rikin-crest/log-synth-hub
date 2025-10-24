@@ -20,51 +20,44 @@ export interface LoginResponse {
 export const loginUser = async (
   credentials: LoginCredentials
 ): Promise<LoginResponse | null> => {
-  try {
-    // Create Basic Auth header
-    const basicAuth = btoa(`${credentials.username}:${credentials.password}`);
+  // Create Basic Auth header
+  const basicAuth = btoa(`${credentials.username}:${credentials.password}`);
 
-    const response = await fetch(
-      `${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.LOGIN}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Basic ${basicAuth}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error("Invalid username or password");
-      } else if (response.status === 403) {
-        throw new Error("Access denied");
-      } else {
-        throw new Error(`Login failed: ${response.statusText}`);
-      }
+  const response = await fetch(
+    `${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.LOGIN}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Basic ${basicAuth}`,
+        "Content-Type": "application/json",
+      },
     }
+  );
 
-    const data: LoginResponse = await response.json();
-
-    // Store token if provided
-    if (data.access_token) {
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("token_type", data.token_type || "Bearer");
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Invalid username or password");
+    } else if (response.status === 403) {
+      throw new Error("Access denied");
+    } else {
+      throw new Error(`Login failed: ${response.statusText}`);
     }
-
-    // Store user info if provided
-    if (data.user) {
-      localStorage.setItem("user", JSON.stringify(data.user));
-    }
-
-    return data;
-  } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Login failed";
-    toast.error(errorMessage);
-    return null;
   }
+
+  const data: LoginResponse = await response.json();
+
+  // Store token if provided
+  if (data.access_token) {
+    localStorage.setItem("access_token", data.access_token);
+    localStorage.setItem("token_type", data.token_type || "Bearer");
+  }
+
+  // Store user info if provided
+  if (data.user) {
+    localStorage.setItem("user", JSON.stringify(data.user));
+  }
+
+  return data;
 };
 
 export const logoutUser = () => {

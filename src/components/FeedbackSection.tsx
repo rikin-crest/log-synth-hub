@@ -10,7 +10,7 @@ import {
 import { Feedback, Refresh, CheckCircle } from "@mui/icons-material";
 
 interface FeedbackSectionProps {
-  onRerun: (feedback: string) => Promise<void>;
+  onRerun: (feedback: string) => void;
   onConfGenerate: () => void;
   disabled: boolean;
 }

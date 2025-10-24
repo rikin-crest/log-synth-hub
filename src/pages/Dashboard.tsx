@@ -15,7 +15,9 @@ import {
 import { Logout, Settings, Psychology, AccountTree } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { logoutUser, isAuthenticated } from "../api/auth";
+import { isAuthenticated } from "../api/auth";
+import { useLogout } from "../hooks/use-auth";
+import { useStartWorkflow, useResumeWorkflow, useGenerateConf } from "../hooks/use-workflow";
 import InputSection from "../components/InputSection";
 
 // Lazy load heavy components
@@ -26,12 +28,6 @@ const FeedbackSection = lazy(() => import("../components/FeedbackSection"));
 
 // Import LoadingFallback directly (not lazy since it's used in fallbacks)
 import LoadingFallback from "../components/LoadingFallback";
-import { generateConf, resumeWorkflow, startWorkflow } from "@/api/workflow";
-import {
-  GenerateConfPayload,
-  ResumeWorkflowPayload,
-  WorkflowResponse,
-} from "@/components/types";
 import { addToSessionStorage, getFromSessionStorage } from "@/lib/session";
 import { getColumns } from "@/lib/utils";
 import image from "../assets/image.png";
@@ -40,13 +36,21 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [isProcessing, setIsProcessing] = useState(false);
   const [thoughtSteps, setThoughtSteps] = useState<string[]>([]);
   const [mappingData, setMappingData] = useState<unknown[]>([]);
   const [activeTab, setActiveTab] = useState(0);
   const [workflowImageUrl, setWorkflowImageUrl] = useState<
     string | undefined
   >();
+
+  // TanStack Query hooks
+  const logoutMutation = useLogout();
+  const startWorkflowMutation = useStartWorkflow();
+  const resumeWorkflowMutation = useResumeWorkflow();
+  const generateConfMutation = useGenerateConf();
+
+  // Compute loading state from mutations
+  const isProcessing = startWorkflowMutation.isPending || resumeWorkflowMutation.isPending;
 
   // Check authentication on mount
   useEffect(() => {
@@ -56,38 +60,32 @@ const Dashboard = () => {
   }, [navigate]);
 
   const handleLogout = () => {
-    logoutUser();
-    navigate("/");
+    logoutMutation.mutate();
   };
 
-  const handleGenerateMappings = async (formData: FormData) => {
-    setIsProcessing(true);
+  const handleGenerateMappings = (formData: FormData) => {
     setThoughtSteps([]);
     setMappingData([]);
 
-    const result: WorkflowResponse | null = await startWorkflow(formData);
-
-    if (!result) {
-      setIsProcessing(false);
-      return;
-    }
-
-    addToSessionStorage("thread_id", result["thread_id"]);
-
-    setMappingData(result.output || []);
-    setWorkflowImageUrl(image);
-    setIsProcessing(false);
+    startWorkflowMutation.mutate(formData, {
+      onSuccess: (result) => {
+        if (result) {
+          addToSessionStorage("thread_id", result["thread_id"]);
+          setMappingData(result.output || []);
+          setWorkflowImageUrl(image);
+        }
+      },
+    });
   };
 
-  const handleRerun = async (feedback: string) => {
+  const handleRerun = (feedback: string) => {
     toast.info("Re-running AI analysis...");
-    setIsProcessing(true);
     setThoughtSteps([]);
     setMappingData([]);
 
     const thread_id = getFromSessionStorage("thread_id");
 
-    const payload: ResumeWorkflowPayload = {
+    const payload = {
       thread_id,
       feedback,
     };
@@ -97,28 +95,26 @@ const Dashboard = () => {
       "Content-Type": "application/json",
     };
 
-    const result: WorkflowResponse | null = await resumeWorkflow(
-      payload,
-      headers
+    resumeWorkflowMutation.mutate(
+      { payload, headers },
+      {
+        onSuccess: (result) => {
+          if (result) {
+            setMappingData(result.output || []);
+          }
+        },
+      }
     );
-
-    if (!result) {
-      setIsProcessing(false);
-      return;
-    }
-
-    setMappingData(result.output || []);
-    setIsProcessing(false);
   };
 
-  const handleConfGenerate = async () => {
+  const handleConfGenerate = () => {
     toast.info("Generating final configuration...");
     setThoughtSteps([]);
     setMappingData([]);
 
     const thread_id = getFromSessionStorage("thread_id");
 
-    const payload: GenerateConfPayload = {
+    const payload = {
       thread_id,
     };
 
@@ -127,7 +123,7 @@ const Dashboard = () => {
       "Content-Type": "application/json",
     };
 
-    await generateConf(payload, headers);
+    generateConfMutation.mutate({ payload, headers });
   };
 
   return (
@@ -366,7 +362,7 @@ const Dashboard = () => {
                     <LoadingFallback message="Loading workflow graph..." />
                   }
                 >
-                  <WorkflowGraph imageUrl={image} isLoading={false} />
+                  <WorkflowGraph imageUrl={workflowImageUrl || image} isLoading={false} />
                 </Suspense>
               )}
             </Box>

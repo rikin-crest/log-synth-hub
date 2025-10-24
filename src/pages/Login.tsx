@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Box,
   Card,
@@ -19,19 +18,18 @@ import {
   Lock,
   AutoAwesome,
 } from "@mui/icons-material";
-import { toast } from "sonner";
-import { loginUser, LoginCredentials } from "../api/auth";
+import { useLogin } from "../hooks/use-auth";
 import CrestLogo from "../assets/Crest_Logo.svg";
 
 const Login = () => {
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const loginMutation = useLogin();
+
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -40,27 +38,14 @@ const Login = () => {
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const credentials: LoginCredentials = {
-        username,
-        password,
-      };
-
-      const result = await loginUser(credentials);
-
-      if (result) {
-        toast.success("Login successful!");
-        navigate("/dashboard");
-      } else {
-        setError("Login failed. Please check your credentials.");
+    loginMutation.mutate(
+      { username, password },
+      {
+        onError: () => {
+          setError("Login failed. Please check your credentials.");
+        },
       }
-    } catch (error) {
-      setError("An error occurred during login. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   return (
@@ -230,14 +215,14 @@ const Login = () => {
                 type="submit"
                 variant="contained"
                 size="large"
-                disabled={loading}
+                disabled={loginMutation.isPending}
                 sx={{
                   py: 1.5,
                   fontSize: "1.1rem",
                   fontWeight: 600,
                 }}
               >
-                {loading ? "Logging in..." : "Login"}
+                {loginMutation.isPending ? "Logging in..." : "Login"}
               </Button>
             </form>
 
