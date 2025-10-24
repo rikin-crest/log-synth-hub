@@ -61,12 +61,12 @@ const ChainOfThoughts = ({ steps, isProcessing }: ChainOfThoughtsProps) => {
             gap: 2,
             p: 2,
             borderRadius: 2,
-            backgroundColor: "hsl(var(--muted) / 0.3)",
+            backgroundColor: "action.hover",
             animation: "slide-in-up 0.4s ease-out",
             transition: "all 0.3s ease",
             flexShrink: 0,
             "&:hover": {
-              backgroundColor: "hsl(var(--muted) / 0.5)",
+              backgroundColor: "action.selected",
               transform: "translateX(4px)",
             },
           }}

@@ -17,8 +17,11 @@ import {
   AccountCircle,
   Lock,
   AutoAwesome,
+  Brightness4,
+  Brightness7,
 } from "@mui/icons-material";
 import { useLogin } from "../hooks/use-auth";
+import { useThemeMode } from "../contexts/ThemeContext";
 import CrestLogo from "../assets/Crest_Logo.svg";
 
 const Login = () => {
@@ -26,6 +29,7 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const { mode, toggleTheme } = useThemeMode();
 
   const loginMutation = useLogin();
 
@@ -55,12 +59,33 @@ const Login = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background:
-          "linear-gradient(135deg, hsl(220, 30%, 85%), hsl(240, 25%, 90%))",
+        background: mode === 'light'
+          ? "linear-gradient(135deg, hsl(220, 30%, 85%), hsl(240, 25%, 90%))"
+          : "linear-gradient(135deg, hsl(220, 20%, 15%), hsl(240, 20%, 20%))",
         position: "relative",
         overflow: "hidden",
       }}
     >
+      {/* Theme toggle button */}
+      <IconButton
+        onClick={toggleTheme}
+        sx={{
+          position: "absolute",
+          top: 16,
+          right: 16,
+          zIndex: 10,
+          bgcolor: mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.5)',
+          '&:hover': {
+            bgcolor: mode === 'light' ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.7)',
+          },
+        }}
+      >
+        {mode === 'dark' ? (
+          <Brightness7 sx={{ color: 'warning.main' }} />
+        ) : (
+          <Brightness4 sx={{ color: 'primary.main' }} />
+        )}
+      </IconButton>
       {/* Animated background elements */}
       <Box
         sx={{
@@ -114,7 +139,9 @@ const Login = () => {
         <Card
           sx={{
             backdropFilter: "blur(20px)",
-            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            backgroundColor: mode === 'light' 
+              ? "rgba(255, 255, 255, 0.95)" 
+              : "rgba(30, 30, 40, 0.95)",
             animation: "slide-in-up 0.6s ease-out 0.2s backwards",
           }}
         >

@@ -5,7 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { muiTheme } from "./theme/muiTheme";
+import { createMuiTheme } from "./theme/muiTheme";
+import { ThemeModeProvider, useThemeMode } from "./contexts/ThemeContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -28,9 +29,12 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider theme={muiTheme}>
+const AppContent = () => {
+  const { mode } = useThemeMode();
+  const theme = createMuiTheme(mode);
+
+  return (
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <TooltipProvider>
         <Toaster />
@@ -53,6 +57,14 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <ThemeModeProvider>
+      <AppContent />
+    </ThemeModeProvider>
   </QueryClientProvider>
 );
 

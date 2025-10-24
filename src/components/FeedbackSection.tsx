@@ -33,9 +33,9 @@ const FeedbackSection = ({
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        background:
-          "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 1))",
-        border: "1px solid hsl(var(--border))",
+        bgcolor: "background.paper",
+        border: 1,
+        borderColor: "divider",
       }}
     >
       <CardContent
@@ -58,7 +58,9 @@ const FeedbackSection = ({
 
         <TextField
           fullWidth
-          placeholder="Provide feedback..."
+          placeholder={
+            disabled ? "Generate mappings first..." : "Provide feedback..."
+          }
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
           disabled={disabled}
@@ -66,27 +68,40 @@ const FeedbackSection = ({
             mb: 3,
             flexGrow: 1,
             "& .MuiOutlinedInput-root": {
-              backgroundColor: disabled ? "hsl(var(--muted) / 0.2)" : "white",
+              backgroundColor: disabled
+                ? "action.disabledBackground"
+                : "background.default",
               height: "100%",
               alignItems: "flex-start",
+              cursor: disabled ? "no-drop" : "text",
 
-              // remove hover/focus border color & animation
-              "& > fieldset": {
-                borderColor: "hsl(var(--border)) !important",
-                transition: "none !important", // <-- disables color animation
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "divider !important",
               },
-              "&:hover > fieldset": {
-                borderColor: "hsl(var(--border)) !important",
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: disabled
+                  ? "divider !important"
+                  : "primary.main !important",
               },
-              "&.Mui-focused > fieldset": {
-                borderColor: "hsl(var(--border)) !important",
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: disabled
+                  ? "divider !important"
+                  : "primary.main !important",
               },
-              "&.Mui-disabled > fieldset": {
-                borderColor: "hsl(var(--border)) !important",
+              "&.Mui-disabled": {
+                cursor: "no-drop !important",
+                pointerEvents: "auto !important",
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "divider !important",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "divider !important",
+                },
               },
             },
             "& .MuiOutlinedInput-input": {
               overflow: "auto !important",
+              cursor: disabled ? "no-drop !important" : "text",
             },
           }}
         />

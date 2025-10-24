@@ -9,8 +9,6 @@ import {
   CircularProgress,
   TextField,
   InputAdornment,
-  useTheme,
-  useMediaQuery,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { TableChart, Download, Search } from "@mui/icons-material";
@@ -30,8 +28,6 @@ const MappingTable = ({
   columns,
   loading = false,
 }: MappingTableProps) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [searchTerm, setSearchTerm] = React.useState("");
   const gridColumns: GridColDef[] = columns.map((col) => ({
     field: col.key,
@@ -132,9 +128,9 @@ const MappingTable = ({
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        background:
-          "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 1))",
-        border: "1px solid hsl(var(--border))",
+        bgcolor: "background.paper",
+        border: 1,
+        borderColor: "divider",
       }}
     >
       <CardContent
@@ -193,7 +189,7 @@ const MappingTable = ({
                   "& .MuiOutlinedInput-root": {
                     height: 36,
                     borderRadius: 2,
-                    backgroundColor: "rgba(255, 255, 255, 0.8)",
+                    backgroundColor: "background.default",
                     fontSize: 14,
                     "&:hover .MuiOutlinedInput-notchedOutline": {
                       borderColor: "primary.main",
@@ -278,34 +274,42 @@ const MappingTable = ({
               loadingOverlay: CustomLoadingOverlay,
             }}
             sx={{
-              border: "1px solid rgba(224, 224, 224, 1)",
-              backgroundColor: "white",
+              border: 1,
+              borderColor: "divider",
+              backgroundColor: "background.default",
               height: { xs: "300px", md: "100%" },
               "& .MuiDataGrid-columnHeaders": {
                 fontWeight: 600,
-                backgroundColor: "background.default",
+                backgroundColor: "action.hover",
                 fontSize: { xs: "0.75rem", md: "0.875rem" },
               },
               "& .MuiDataGrid-cell": {
                 fontSize: { xs: "0.75rem", md: "0.875rem" },
                 padding: { xs: "4px 8px", md: "8px 16px" },
+                borderColor: "divider",
               },
               "& .MuiDataGrid-columnHeader": {
-                borderRight: "1px solid rgba(224, 224, 224, 0.8)",
+                borderRight: 1,
+                borderColor: "divider",
                 "&:last-child": {
                   borderRight: "none",
                 },
               },
               "& .MuiDataGrid-overlay": {
-                backgroundColor: "rgba(255,255,255,0.8)",
+                backgroundColor: "background.paper",
               },
               "& .MuiDataGrid-row": {
+                "&:hover": {
+                  backgroundColor: "action.hover",
+                },
                 "&:last-child": {
-                  borderBottom: "1px solid rgba(224, 224, 224, 0.5)",
+                  borderBottom: 1,
+                  borderColor: "divider",
                 },
               },
               "& .MuiDataGrid-columnSeparator": {
                 display: "block",
+                color: "divider",
               },
               "& .MuiDataGrid-columnHeaderTitle": {
                 fontWeight: 600,
@@ -324,8 +328,13 @@ const MappingTable = ({
               },
               "& .MuiDataGrid-toolbarContainer": {
                 padding: "8px 16px",
-                borderBottom: "1px solid rgba(224, 224, 224, 0.8)",
-                backgroundColor: "rgba(250, 250, 250, 0.8)",
+                borderBottom: 1,
+                borderColor: "divider",
+                backgroundColor: "action.hover",
+              },
+              "& .MuiDataGrid-footerContainer": {
+                borderTop: 1,
+                borderColor: "divider",
               },
             }}
             initialState={{

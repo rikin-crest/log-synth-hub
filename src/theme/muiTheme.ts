@@ -1,8 +1,8 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, PaletteMode } from '@mui/material/styles';
 
-export const muiTheme = createTheme({
+export const createMuiTheme = (mode: PaletteMode) => createTheme({
   palette: {
-    mode: 'light',
+    mode,
     primary: {
       main: 'hsl(260, 85%, 60%)',
       light: 'hsl(260, 85%, 70%)',
@@ -15,13 +15,19 @@ export const muiTheme = createTheme({
       dark: 'hsl(220, 70%, 45%)',
       contrastText: '#ffffff',
     },
-    background: {
+    background: mode === 'light' ? {
       default: 'hsl(220, 25%, 97%)',
       paper: '#ffffff',
+    } : {
+      default: 'hsl(220, 15%, 10%)',
+      paper: 'hsl(220, 15%, 15%)',
     },
-    text: {
+    text: mode === 'light' ? {
       primary: 'hsl(240, 20%, 15%)',
       secondary: 'hsl(240, 10%, 45%)',
+    } : {
+      primary: 'hsl(0, 0%, 95%)',
+      secondary: 'hsl(0, 0%, 70%)',
     },
     error: {
       main: 'hsl(0, 85%, 60%)',
@@ -31,6 +37,16 @@ export const muiTheme = createTheme({
     },
     warning: {
       main: 'hsl(35, 90%, 60%)',
+    },
+    divider: mode === 'light' ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
+    action: mode === 'light' ? {
+      hover: 'rgba(0, 0, 0, 0.04)',
+      selected: 'rgba(0, 0, 0, 0.08)',
+      disabledBackground: 'rgba(0, 0, 0, 0.12)',
+    } : {
+      hover: 'rgba(255, 255, 255, 0.08)',
+      selected: 'rgba(255, 255, 255, 0.16)',
+      disabledBackground: 'rgba(255, 255, 255, 0.12)',
     },
   },
   typography: {
@@ -110,7 +126,7 @@ export const muiTheme = createTheme({
         root: {
           '& .MuiOutlinedInput-root': {
             borderRadius: 12,
-            '&:hover .MuiOutlinedInput-notchedOutline': {
+            '&:hover:not(.Mui-disabled) .MuiOutlinedInput-notchedOutline': {
               borderColor: 'hsl(260, 85%, 60%)',
             },
           },

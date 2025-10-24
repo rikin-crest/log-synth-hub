@@ -12,12 +12,24 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import { Logout, Settings, Psychology, AccountTree } from "@mui/icons-material";
+import {
+  Logout,
+  Settings,
+  Psychology,
+  AccountTree,
+  Brightness4,
+  Brightness7,
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { isAuthenticated } from "../api/auth";
 import { useLogout } from "../hooks/use-auth";
-import { useStartWorkflow, useResumeWorkflow, useGenerateConf } from "../hooks/use-workflow";
+import { useThemeMode } from "../contexts/ThemeContext";
+import {
+  useStartWorkflow,
+  useResumeWorkflow,
+  useGenerateConf,
+} from "../hooks/use-workflow";
 import InputSection from "../components/InputSection";
 
 // Lazy load heavy components
@@ -30,12 +42,14 @@ const FeedbackSection = lazy(() => import("../components/FeedbackSection"));
 import LoadingFallback from "../components/LoadingFallback";
 import { addToSessionStorage, getFromSessionStorage } from "@/lib/session";
 import { getColumns } from "@/lib/utils";
-import image from "../assets/image.png";
+import image_light from "../assets/image_light.png";
+import image_dark from "../assets/image_dark.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { mode, toggleTheme } = useThemeMode();
   const [thoughtSteps, setThoughtSteps] = useState<string[]>([]);
   const [mappingData, setMappingData] = useState<unknown[]>([]);
   const [activeTab, setActiveTab] = useState(0);
@@ -50,7 +64,8 @@ const Dashboard = () => {
   const generateConfMutation = useGenerateConf();
 
   // Compute loading state from mutations
-  const isProcessing = startWorkflowMutation.isPending || resumeWorkflowMutation.isPending;
+  const isProcessing =
+    startWorkflowMutation.isPending || resumeWorkflowMutation.isPending;
 
   // Check authentication on mount
   useEffect(() => {
@@ -72,7 +87,7 @@ const Dashboard = () => {
         if (result) {
           addToSessionStorage("thread_id", result["thread_id"]);
           setMappingData(result.output || []);
-          setWorkflowImageUrl(image);
+          setWorkflowImageUrl(mode === "dark" ? image_dark : image_light);
         }
       },
     });
@@ -167,9 +182,21 @@ const Dashboard = () => {
                 fontSize: { xs: "1.1rem", sm: "1.25rem", md: "1.5rem" },
               }}
             >
-              {isMobile ? "Parser" : "ParserPilot.ai"}
+              ParserPilot.ai
             </Typography>
           </Box>
+          <IconButton
+            color="inherit"
+            onClick={toggleTheme}
+            size={isMobile ? "small" : "medium"}
+            sx={{ mr: { xs: 0.5, md: 1 } }}
+          >
+            {mode === "dark" ? (
+              <Brightness7 sx={{ fontSize: { xs: 20, md: 24 } }} />
+            ) : (
+              <Brightness4 sx={{ fontSize: { xs: 20, md: 24 } }} />
+            )}
+          </IconButton>
           <IconButton
             color="inherit"
             onClick={handleLogout}
@@ -228,9 +255,9 @@ const Dashboard = () => {
           {/* Input Section - Standalone */}
           <Box
             sx={{
-              background:
-                "linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,1))",
-              border: "1px solid hsl(var(--border))",
+              bgcolor: "background.paper",
+              border: 1,
+              borderColor: "divider",
               borderRadius: "12px",
               p: 2,
               height: "fit-content",
@@ -251,9 +278,9 @@ const Dashboard = () => {
           {/* Analysis Section with Tabs */}
           <Box
             sx={{
-              background:
-                "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 1))",
-              border: "1px solid hsl(var(--border))",
+              bgcolor: "background.paper",
+              border: 1,
+              borderColor: "divider",
               borderRadius: "12px",
               overflow: "hidden",
               display: "flex",
@@ -265,9 +292,10 @@ const Dashboard = () => {
             <Tabs
               value={activeTab}
               onChange={(_, newValue) => setActiveTab(newValue)}
-              variant={isMobile ? "fullWidth" : "standard"}
+              variant={"fullWidth"}
               sx={{
-                borderBottom: "1px solid hsl(var(--border))",
+                borderBottom: 1,
+                borderColor: "divider",
                 "& .MuiTab-root": {
                   minHeight: { xs: 48, md: 56 },
                   textTransform: "none",
@@ -362,7 +390,10 @@ const Dashboard = () => {
                     <LoadingFallback message="Loading workflow graph..." />
                   }
                 >
-                  <WorkflowGraph imageUrl={workflowImageUrl || image} isLoading={false} />
+                  <WorkflowGraph
+                    imageUrl={mode === "dark" ? image_dark : image_light}
+                    isLoading={false}
+                  />
                 </Suspense>
               )}
             </Box>
