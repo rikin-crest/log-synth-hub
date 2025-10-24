@@ -1,5 +1,7 @@
+import { env } from "@/config/env";
+
 export const API_CONFIG = {
-  BASE_URL: "https://10.50.1.12:8002",
+  BASE_URL: env.apiBaseUrl,
   ENDPOINTS: {
     START_WORKFLOW: "api/v1/start_workflow",
     RESUME_WORKFLOW: "api/v1/resume_workflow",

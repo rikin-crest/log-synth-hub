@@ -8,11 +8,15 @@ import fs from "fs";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "0.0.0.0",
-    port: 8080,
+    host: process.env.VITE_SERVER_HOST || "0.0.0.0",
+    port: parseInt(process.env.VITE_SERVER_PORT || "8080"),
     https: {
-      key: fs.readFileSync("/opt/certs/cert.key"),
-      cert: fs.readFileSync("/opt/certs/cert.crt"),
+      key: fs.readFileSync(
+        process.env.VITE_CERT_KEY_PATH || "/opt/certs/cert.key"
+      ),
+      cert: fs.readFileSync(
+        process.env.VITE_CERT_CRT_PATH || "/opt/certs/cert.crt"
+      ),
     },
   },
   plugins: [
@@ -39,27 +43,27 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: (id) => {
           // Only chunk libraries that are safe and independent
-          
+
           // Large DataGrid component - safe to separate
           if (id.includes("@mui/x-data-grid")) {
             return "mui-data-grid";
           }
-          
+
           // TanStack Query - independent library
           if (id.includes("@tanstack/react-query")) {
             return "query-vendor";
           }
-          
+
           // React Router - can be separated from React core
           if (id.includes("react-router-dom")) {
             return "router-vendor";
           }
-          
+
           // Lucide icons - independent
           if (id.includes("lucide-react")) {
             return "icons-vendor";
           }
-          
+
           // Leave MUI core + Emotion together in main bundle to prevent circular deps
           // Leave React + ReactDOM together for stability
           return undefined;
