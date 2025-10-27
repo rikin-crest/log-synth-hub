@@ -17,22 +17,17 @@ export interface LoginResponse {
   };
 }
 
-export const loginUser = async (
-  credentials: LoginCredentials
-): Promise<LoginResponse | null> => {
+export const loginUser = async (credentials: LoginCredentials): Promise<LoginResponse | null> => {
   // Create Basic Auth header
   const basicAuth = btoa(`${credentials.username}:${credentials.password}`);
 
-  const response = await fetch(
-    `${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.LOGIN}`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Basic ${basicAuth}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  const response = await fetch(`${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.LOGIN}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Basic ${basicAuth}`,
+      "Content-Type": "application/json",
+    },
+  });
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -90,6 +85,10 @@ export const isAuthenticated = (): boolean => {
 
 // Helper function to handle 401 errors and redirect to login
 export const handleUnauthorized = () => {
-  logoutUser();
-  window.location.href = "/";
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("token_type");
+  localStorage.removeItem("user");
+  setTimeout(() => {
+    window.location.href = "/";
+  }, 3000);
 };

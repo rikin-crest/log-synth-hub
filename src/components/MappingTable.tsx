@@ -23,19 +23,14 @@ interface MappingTableProps {
   columns: Column[];
   loading?: boolean;
 }
-const MappingTable = ({
-  data,
-  columns,
-  loading = false,
-}: MappingTableProps) => {
+const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => {
   const [searchTerm, setSearchTerm] = React.useState("");
   const gridColumns: GridColDef[] = columns.map((col) => ({
     field: col.key,
     headerName: col.name,
     flex: 1,
     minWidth: 120,
-    maxWidth: 300,
-    resizable: true,
+    resizable: false,
     sortable: true,
     renderCell: (params) => (
       <Box
@@ -44,6 +39,9 @@ const MappingTable = ({
           overflow: "hidden",
           textOverflow: "ellipsis",
           width: "100%",
+          display: "flex",
+          alignItems: "center",
+          height: "100%",
         }}
         title={String(params.value || "")}
       >
@@ -91,11 +89,7 @@ const MappingTable = ({
     // Helper function to escape CSV values
     const escapeCsvValue = (value: any): string => {
       const strValue = String(value ?? "");
-      if (
-        strValue.includes(",") ||
-        strValue.includes('"') ||
-        strValue.includes("\n")
-      ) {
+      if (strValue.includes(",") || strValue.includes('"') || strValue.includes("\n")) {
         return `"${strValue.replace(/"/g, '""')}"`;
       }
       return strValue;
@@ -103,9 +97,7 @@ const MappingTable = ({
 
     const csvContent = [
       columns.map((col) => escapeCsvValue(col.name)).join(","), // Header row with escaped names
-      ...filteredData.map((row) =>
-        columns.map((col) => escapeCsvValue(row[col.key])).join(",")
-      ),
+      ...filteredData.map((row) => columns.map((col) => escapeCsvValue(row[col.key])).join(",")),
     ].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -227,16 +219,14 @@ const MappingTable = ({
                     py: 0.75,
                     borderRadius: 2,
                     fontSize: 14,
-                    background:
-                      "linear-gradient(135deg, hsl(220, 70%, 55%), hsl(260, 85%, 60%))",
+                    background: "linear-gradient(135deg, hsl(220, 70%, 55%), hsl(260, 85%, 60%))",
                     boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                     "& .MuiButton-startIcon": {
                       marginRight: 1,
                       marginLeft: 0,
                     },
                     "&:hover": {
-                      background:
-                        "linear-gradient(135deg, hsl(220, 70%, 50%), hsl(260, 85%, 55%))",
+                      background: "linear-gradient(135deg, hsl(220, 70%, 50%), hsl(260, 85%, 55%))",
                       boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
                     },
                     transition: "all 0.2s ease-in-out",
@@ -276,17 +266,17 @@ const MappingTable = ({
             sx={{
               border: 1,
               borderColor: "divider",
-              backgroundColor: "background.default",
               height: { xs: "300px", md: "100%" },
               "& .MuiDataGrid-columnHeaders": {
                 fontWeight: 600,
-                backgroundColor: "action.hover",
                 fontSize: { xs: "0.75rem", md: "0.875rem" },
               },
               "& .MuiDataGrid-cell": {
                 fontSize: { xs: "0.75rem", md: "0.875rem" },
                 padding: { xs: "4px 8px", md: "8px 16px" },
                 borderColor: "divider",
+                display: "flex",
+                alignItems: "center",
               },
               "& .MuiDataGrid-columnHeader": {
                 borderRight: 1,
@@ -294,6 +284,12 @@ const MappingTable = ({
                 "&:last-child": {
                   borderRight: "none",
                 },
+              },
+              "& .MuiDataGrid-columnSeparator--sideRight": {
+                display: "none !important",
+              },
+              "& .MuiDataGrid-columnHeader--last": {
+                borderRight: "none",
               },
               "& .MuiDataGrid-overlay": {
                 backgroundColor: "background.paper",
@@ -311,6 +307,12 @@ const MappingTable = ({
                 display: "block",
                 color: "divider",
               },
+              "& .MuiDataGrid-columnHeader:last-child .MuiDataGrid-columnSeparator": {
+                display: "none",
+              },
+              "& MuiDataGrid-columnSeparator--sideRight": {
+                display: "none",
+              },
               "& .MuiDataGrid-columnHeaderTitle": {
                 fontWeight: 600,
               },
@@ -322,9 +324,6 @@ const MappingTable = ({
               },
               "& .MuiDataGrid-main": {
                 overflow: "hidden",
-              },
-              "& .MuiDataGrid-scrollbarFiller": {
-                display: "none",
               },
               "& .MuiDataGrid-toolbarContainer": {
                 padding: "8px 16px",
@@ -338,9 +337,9 @@ const MappingTable = ({
               },
             }}
             initialState={{
-              pagination: { paginationModel: { pageSize: 10, page: 0 } },
+              pagination: { paginationModel: { pageSize: 20, page: 0 } },
             }}
-            pageSizeOptions={[5, 10, 25, 50]}
+            pageSizeOptions={[10, 20, 50, 100]}
           />
         </Box>
       </CardContent>

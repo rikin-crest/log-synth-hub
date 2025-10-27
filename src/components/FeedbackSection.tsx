@@ -43,6 +43,7 @@ const FeedbackSection = ({
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
+          px: 3,
 
           ".MuiCardContent-root:last-child": {
             p: 0,
