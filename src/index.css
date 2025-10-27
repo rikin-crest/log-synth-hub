@@ -131,17 +131,15 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
     overflow: hidden;
   }
 
   /* Gradient backgrounds */
   .gradient-ai {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--ai-gradient-start)),
-      hsl(var(--ai-gradient-end))
-    );
+    background: linear-gradient(135deg, hsl(var(--ai-gradient-start)), hsl(var(--ai-gradient-end)));
   }
 
   .gradient-ai-subtle {
@@ -208,12 +206,17 @@ All colors MUST be HSL.
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary) / 0.5);
+    background: hsl(var(--primary) / 0.8);
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary) / 0.7);
+    background: hsl(var(--primary));
+  }
+
+  /* Dark mode scrollbar */
+  .dark ::-webkit-scrollbar-track {
+    background: hsl(220, 15%, 15%);
   }
 
   /* Sonner Toast Styling */

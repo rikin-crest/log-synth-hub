@@ -291,9 +291,13 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
               "& .MuiDataGrid-cell": {
                 fontSize: { xs: "0.75rem", md: "0.875rem" },
                 padding: { xs: "4px 8px", md: "8px 16px" },
-                borderColor: "divider",
                 display: "flex",
                 alignItems: "center",
+                borderRight: "1px solid",
+                borderColor: "divider",
+                "&:last-child": {
+                  borderRight: "none",
+                },
               },
               "& .MuiDataGrid-columnHeader": {
                 borderRight: 1,
