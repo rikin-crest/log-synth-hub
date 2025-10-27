@@ -8,8 +8,11 @@ import {
   FormControl,
   InputLabel,
   Autocomplete,
+  Tooltip,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
-import { CloudUpload, Close, AutoAwesome } from "@mui/icons-material";
+import { Close, AutoAwesome, InfoOutlined } from "@mui/icons-material";
 import { toast } from "sonner";
 
 interface ProductOption {
@@ -63,10 +66,7 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
   // Get log category options based on selected product
   const getLogCategoryOptions = () => {
     if (!productName) return [];
-    return (
-      productLogCategories[productName as keyof typeof productLogCategories] ||
-      []
-    );
+    return productLogCategories[productName as keyof typeof productLogCategories] || [];
   };
 
   // Check if categories are available for the selected product
@@ -141,10 +141,7 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           size="small"
           fullWidth
           options={productOptions}
-          value={
-            productOptions.find((option) => option.value === productName) ||
-            null
-          }
+          value={productOptions.find((option) => option.value === productName) || null}
           onChange={(_, newValue) => handleProductNameChange(newValue?.value)}
           isOptionEqualToValue={(option, value) => option.value === value.value}
           getOptionLabel={(option) => option.label}
@@ -179,7 +176,33 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
             },
           }}
           renderInput={(params) => (
-            <TextField {...params} label="Product Name" required />
+            <TextField
+              {...params}
+              label="Product Name"
+              placeholder="Select product"
+              required
+              InputProps={{
+                ...params.InputProps,
+                startAdornment: (
+                  <InputAdornment position="start" sx={{ mr: -1, ml: 0 }}>
+                    <Tooltip
+                      title="Select the security product or service that generated the logs"
+                      arrow
+                      placement="top"
+                    >
+                      <IconButton size="small" edge="start">
+                        <InfoOutlined fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                "& .MuiInputBase-input": {
+                  pl: 1,
+                },
+              }}
+            />
           )}
         />
 
@@ -189,6 +212,36 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
             value={logType}
             onChange={(e) => handleLogTypeChange(e.target.value)}
             label="Log Format"
+            displayEmpty
+            startAdornment={
+              <InputAdornment position="start" sx={{ mr: 0, ml: -1 }}>
+                <Tooltip
+                  title="Select the format of your log data (JSON, Key-Value pairs, or XML)"
+                  arrow
+                  placement="top"
+                >
+                  <IconButton size="small" edge="start">
+                    <InfoOutlined fontSize="inherit" />
+                  </IconButton>
+                </Tooltip>
+              </InputAdornment>
+            }
+            renderValue={(selected) => {
+              if (!selected) {
+                return <span style={{ color: "#9ca3af" }}>Select format</span>;
+              }
+              const formats: Record<string, string> = {
+                json: "JSON",
+                kv: "Key-Value (KV)",
+                xml: "XML",
+              };
+              return formats[selected];
+            }}
+            sx={{
+              "& .MuiSelect-root": {
+                pl: 0,
+              },
+            }}
           >
             <MenuItem value="json">JSON</MenuItem>
             <MenuItem value="kv">Key-Value (KV)</MenuItem>
@@ -241,8 +294,8 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
             !productName
               ? "Select product first"
               : !hasCategoriesAvailable()
-              ? "No categories available"
-              : "No matching categories"
+                ? "No categories available"
+                : "No matching categories"
           }
           renderInput={(params) => (
             <TextField
@@ -252,20 +305,30 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
                 !productName
                   ? "Select product first"
                   : !hasCategoriesAvailable()
-                  ? "No categories available"
-                  : "Type here"
+                    ? "No categories available"
+                    : "Type here"
               }
+              InputProps={{
+                ...params.InputProps,
+                startAdornment: (
+                  <InputAdornment position="start" sx={{ mr: -1, ml: 0 }}>
+                    <Tooltip
+                      title="Specify the log category for the selected product"
+                      arrow
+                      placement="top"
+                    >
+                      <IconButton size="small" edge="start">
+                        <InfoOutlined fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                ),
+              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
-                  cursor:
-                    !productName || !hasCategoriesAvailable()
-                      ? "not-allowed"
-                      : "text",
+                  cursor: !productName || !hasCategoriesAvailable() ? "not-allowed" : "text",
                   "&.Mui-disabled": {
                     cursor: "not-allowed",
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "rgba(0, 0, 0, 0.23) !important",
-                    },
                   },
                   "&.Mui-disabled:hover": {
                     cursor: "not-allowed",
@@ -284,13 +347,22 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
             variant="outlined"
             component="label"
             fullWidth
-            startIcon={<CloudUpload />}
+            startIcon={
+              <Tooltip
+                title="Upload a sample log file in JSON, XML, or text format"
+                arrow
+                placement="top"
+              >
+                <InfoOutlined fontSize="inherit" />
+              </Tooltip>
+            }
             sx={{
               p: 0,
               height: { xs: "40px", sm: "100%" },
               minHeight: "40px",
               borderStyle: "dashed",
               borderWidth: 2,
+              fontSize: 14,
               wordBreak: "break-word",
               "&:hover": { borderStyle: "dashed", borderWidth: 2 },
             }}
@@ -348,11 +420,9 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           "&:disabled": {
             color: "#9ca3af !important",
           },
-          background:
-            "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
+          background: "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
           "&:hover": {
-            background:
-              "linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))",
+            background: "linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))",
           },
         }}
       >

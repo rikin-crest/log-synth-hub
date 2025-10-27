@@ -6,8 +6,10 @@ import {
   Typography,
   TextField,
   Button,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
-import { Feedback, Refresh, CheckCircle } from "@mui/icons-material";
+import { Feedback, Refresh, CheckCircle, InfoOutlined } from "@mui/icons-material";
 
 interface FeedbackSectionProps {
   onRerun: (feedback: string) => void;
@@ -15,11 +17,7 @@ interface FeedbackSectionProps {
   disabled: boolean;
 }
 
-const FeedbackSection = ({
-  onRerun,
-  onConfGenerate,
-  disabled,
-}: FeedbackSectionProps) => {
+const FeedbackSection = ({ onRerun, onConfGenerate, disabled }: FeedbackSectionProps) => {
   const [feedback, setFeedback] = useState("");
 
   const handleConfGenerate = () => {
@@ -50,18 +48,25 @@ const FeedbackSection = ({
           },
         }}
       >
-        <Box sx={{ display: "flex", mb: 1, flexShrink: 0 }}>
-          <Feedback sx={{ mr: 1, color: "primary.main" }} />
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 1, flexShrink: 0, gap: 0.5 }}>
+          <Feedback sx={{ mr: 1, color: "primary.main", display: "flex" }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, display: "flex", alignItems: "center" }}>
             Feedback & Actions
           </Typography>
+          <Tooltip
+            title="Provide feedback to refine the mappings and generate the final configuration file"
+            arrow
+            placement="top"
+          >
+            <IconButton size="small" sx={{ p: 0.5, display: "flex", alignItems: "center" }}>
+              <InfoOutlined fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
 
         <TextField
           fullWidth
-          placeholder={
-            disabled ? "Generate mappings first..." : "Provide feedback..."
-          }
+          placeholder={disabled ? "Generate mappings first..." : "Provide feedback..."}
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
           disabled={disabled}
@@ -69,9 +74,7 @@ const FeedbackSection = ({
             mb: 3,
             flexGrow: 1,
             "& .MuiOutlinedInput-root": {
-              backgroundColor: disabled
-                ? "action.disabledBackground"
-                : "background.default",
+              backgroundColor: disabled ? "action.disabledBackground" : "background.default",
               height: "100%",
               alignItems: "flex-start",
               cursor: disabled ? "no-drop" : "text",
@@ -80,14 +83,10 @@ const FeedbackSection = ({
                 borderColor: "divider !important",
               },
               "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: disabled
-                  ? "divider !important"
-                  : "primary.main !important",
+                borderColor: disabled ? "divider !important" : "primary.main !important",
               },
               "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                borderColor: disabled
-                  ? "divider !important"
-                  : "primary.main !important",
+                borderColor: disabled ? "divider !important" : "primary.main !important",
               },
               "&.Mui-disabled": {
                 cursor: "no-drop !important",
@@ -142,8 +141,7 @@ const FeedbackSection = ({
                 pointerEvents: "auto",
                 color: "#9ca3af !important",
               },
-              background:
-                "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
+              background: "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
               "&:hover": {
                 background: disabled
                   ? "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))"

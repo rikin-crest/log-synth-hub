@@ -9,9 +9,11 @@ import {
   CircularProgress,
   TextField,
   InputAdornment,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { TableChart, Download, Search } from "@mui/icons-material";
+import { TableChart, Download, Search, InfoOutlined } from "@mui/icons-material";
 
 interface Column {
   key: string;
@@ -35,17 +37,24 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
     renderCell: (params) => (
       <Box
         sx={{
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          width: "100%",
           display: "flex",
           alignItems: "center",
           height: "100%",
+          width: "100%",
+          minWidth: 0,
         }}
         title={String(params.value || "")}
       >
-        {params.value || ""}
+        <span
+          style={{
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            minWidth: 0,
+          }}
+        >
+          {params.value || ""}
+        </span>
       </Box>
     ),
   }));
@@ -148,11 +157,19 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
             gap: { xs: 1.5, md: 2 },
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <TableChart sx={{ mr: 1, color: "primary.main" }} />
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <TableChart sx={{ mr: 1, color: "primary.main", display: "flex" }} />
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 600, display: "flex", alignItems: "center" }}
+            >
               Mapping Sheet
             </Typography>
+            <Tooltip title="View the generated field mappings here" arrow placement="top">
+              <IconButton size="small" sx={{ p: 0.5, display: "flex", alignItems: "center" }}>
+                <InfoOutlined fontSize="small" />
+              </IconButton>
+            </Tooltip>
           </Box>
 
           {/* Search Bar */}
