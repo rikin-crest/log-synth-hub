@@ -8,6 +8,7 @@ import {
   Button,
   Tooltip,
   IconButton,
+  useTheme,
 } from "@mui/material";
 import { Feedback, Refresh, CheckCircle, InfoOutlined } from "@mui/icons-material";
 
@@ -19,6 +20,7 @@ interface FeedbackSectionProps {
 
 const FeedbackSection = ({ onRerun, onConfGenerate, disabled }: FeedbackSectionProps) => {
   const [feedback, setFeedback] = useState("");
+  const theme = useTheme();
 
   const handleConfGenerate = () => {
     onConfGenerate();
@@ -48,9 +50,12 @@ const FeedbackSection = ({ onRerun, onConfGenerate, disabled }: FeedbackSectionP
           },
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1, flexShrink: 0, gap: 0.5 }}>
-          <Feedback sx={{ mr: 1, color: "primary.main", display: "flex" }} />
-          <Typography variant="h6" sx={{ fontWeight: 600, display: "flex", alignItems: "center" }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 1, flexShrink: 0 }}>
+          <Feedback sx={{ color: "primary.main", display: "flex", mr: 1 }} />
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600, display: "flex", alignItems: "center", pb: 0.6 }}
+          >
             Feedback & Actions
           </Typography>
           <Tooltip
@@ -58,7 +63,7 @@ const FeedbackSection = ({ onRerun, onConfGenerate, disabled }: FeedbackSectionP
             arrow
             placement="top"
           >
-            <IconButton size="small" sx={{ p: 0.5, display: "flex", alignItems: "center" }}>
+            <IconButton size="small" sx={{ pb: 0.8, display: "flex", alignItems: "center" }}>
               <InfoOutlined fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -119,6 +124,7 @@ const FeedbackSection = ({ onRerun, onConfGenerate, disabled }: FeedbackSectionP
               "&:disabled": {
                 cursor: "no-drop",
                 pointerEvents: "auto",
+                borderColor: theme.palette.divider,
               },
               "&:hover": {
                 background: disabled ? "inherit" : "inherit",

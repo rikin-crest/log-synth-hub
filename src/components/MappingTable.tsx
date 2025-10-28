@@ -21,7 +21,7 @@ interface Column {
 }
 
 interface MappingTableProps {
-  data: Record<string, any>[];
+  data: Record<string, unknown>[];
   columns: Column[];
   loading?: boolean;
 }
@@ -96,7 +96,7 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
     if (filteredData.length === 0) return;
 
     // Helper function to escape CSV values
-    const escapeCsvValue = (value: any): string => {
+    const escapeCsvValue = (value: unknown): string => {
       const strValue = String(value ?? "");
       if (strValue.includes(",") || strValue.includes('"') || strValue.includes("\n")) {
         return `"${strValue.replace(/"/g, '""')}"`;
@@ -157,16 +157,16 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
             gap: { xs: 1.5, md: 2 },
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
             <TableChart sx={{ mr: 1, color: "primary.main", display: "flex" }} />
             <Typography
               variant="h6"
-              sx={{ fontWeight: 600, display: "flex", alignItems: "center" }}
+              sx={{ fontWeight: 600, display: "flex", alignItems: "center", pb: 0.2 }}
             >
               Mapping Sheet
             </Typography>
             <Tooltip title="View the generated field mappings here" arrow placement="top">
-              <IconButton size="small" sx={{ p: 0.5, display: "flex", alignItems: "center" }}>
+              <IconButton size="small" sx={{ pt: 0.7, display: "flex", alignItems: "center" }}>
                 <InfoOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -291,13 +291,9 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
               "& .MuiDataGrid-cell": {
                 fontSize: { xs: "0.75rem", md: "0.875rem" },
                 padding: { xs: "4px 8px", md: "8px 16px" },
+                borderColor: "divider",
                 display: "flex",
                 alignItems: "center",
-                borderRight: "1px solid",
-                borderColor: "divider",
-                "&:last-child": {
-                  borderRight: "none",
-                },
               },
               "& .MuiDataGrid-columnHeader": {
                 borderRight: 1,

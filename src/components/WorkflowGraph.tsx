@@ -1,20 +1,14 @@
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Dialog,
-  IconButton,
-} from "@mui/material";
+import { Box, Typography, Dialog, IconButton } from "@mui/material";
 import { AccountTree, Close, Fullscreen } from "@mui/icons-material";
 import { useState } from "react";
+import image_light from "../assets/image_light.png";
+import image_dark from "../assets/image_dark.png";
+import { useThemeMode } from "../contexts/ThemeContext";
 
-interface WorkflowGraphProps {
-  imageUrl?: string;
-  isLoading?: boolean;
-}
-
-const WorkflowGraph = ({ imageUrl, isLoading = false }: WorkflowGraphProps) => {
+const WorkflowGraph = () => {
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const { mode } = useThemeMode();
+  const imageUrl = mode === "dark" ? image_dark : image_light;
 
   const handleFullscreenOpen = () => {
     setFullscreenOpen(true);
@@ -33,7 +27,7 @@ const WorkflowGraph = ({ imageUrl, isLoading = false }: WorkflowGraphProps) => {
         height: "100%",
       }}
     >
-      {!imageUrl && !isLoading && (
+      {!imageUrl && (
         <Box
           sx={{
             display: "flex",
@@ -45,31 +39,11 @@ const WorkflowGraph = ({ imageUrl, isLoading = false }: WorkflowGraphProps) => {
           }}
         >
           <AccountTree sx={{ fontSize: 64, mb: 2, opacity: 0.3 }} />
-          <Typography variant="body1">
-            Workflow graph will appear here after processing
-          </Typography>
+          <Typography variant="body1">Workflow graph will appear here after processing</Typography>
         </Box>
       )}
 
-      {isLoading && (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100%",
-            gap: 2,
-          }}
-        >
-          <CircularProgress size={40} />
-          <Typography variant="body1" color="text.secondary">
-            Generating workflow graph...
-          </Typography>
-        </Box>
-      )}
-
-      {imageUrl && !isLoading && (
+      {imageUrl && (
         <Box
           sx={{
             display: "flex",

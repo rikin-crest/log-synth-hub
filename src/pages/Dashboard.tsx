@@ -25,11 +25,7 @@ import { toast } from "sonner";
 import { isAuthenticated } from "../api/auth";
 import { useLogout } from "../hooks/use-auth";
 import { useThemeMode } from "../contexts/ThemeContext";
-import {
-  useStartWorkflow,
-  useResumeWorkflow,
-  useGenerateConf,
-} from "../hooks/use-workflow";
+import { useStartWorkflow, useResumeWorkflow, useGenerateConf } from "../hooks/use-workflow";
 import InputSection from "../components/InputSection";
 
 // Lazy load heavy components
@@ -42,8 +38,6 @@ const FeedbackSection = lazy(() => import("../components/FeedbackSection"));
 import LoadingFallback from "../components/LoadingFallback";
 import { addToSessionStorage, getFromSessionStorage } from "@/lib/session";
 import { getColumns } from "@/lib/utils";
-import image_light from "../assets/image_light.png";
-import image_dark from "../assets/image_dark.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -51,11 +45,8 @@ const Dashboard = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { mode, toggleTheme } = useThemeMode();
   const [thoughtSteps, setThoughtSteps] = useState<string[]>([]);
-  const [mappingData, setMappingData] = useState<unknown[]>([]);
+  const [mappingData, setMappingData] = useState<Record<string, unknown>[]>([]);
   const [activeTab, setActiveTab] = useState(0);
-  const [workflowImageUrl, setWorkflowImageUrl] = useState<
-    string | undefined
-  >();
 
   // TanStack Query hooks
   const logoutMutation = useLogout();
@@ -64,8 +55,7 @@ const Dashboard = () => {
   const generateConfMutation = useGenerateConf();
 
   // Compute loading state from mutations
-  const isProcessing =
-    startWorkflowMutation.isPending || resumeWorkflowMutation.isPending;
+  const isProcessing = startWorkflowMutation.isPending || resumeWorkflowMutation.isPending;
 
   // Check authentication on mount
   useEffect(() => {
@@ -87,7 +77,6 @@ const Dashboard = () => {
         if (result) {
           addToSessionStorage("thread_id", result["thread_id"]);
           setMappingData(result.output || []);
-          setWorkflowImageUrl(mode === "dark" ? image_dark : image_light);
         }
       },
     });
@@ -153,8 +142,7 @@ const Dashboard = () => {
       <AppBar
         position="sticky"
         sx={{
-          background:
-            "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
+          background: "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
         }}
       >
@@ -197,11 +185,7 @@ const Dashboard = () => {
               <Brightness4 sx={{ fontSize: { xs: 20, md: 24 } }} />
             )}
           </IconButton>
-          <IconButton
-            color="inherit"
-            onClick={handleLogout}
-            size={isMobile ? "small" : "medium"}
-          >
+          <IconButton color="inherit" onClick={handleLogout} size={isMobile ? "small" : "medium"}>
             <Logout sx={{ fontSize: { xs: 20, md: 24 } }} />
           </IconButton>
           <Avatar
@@ -269,10 +253,7 @@ const Dashboard = () => {
                 Input Configuration
               </Typography>
             </Box>
-            <InputSection
-              onSubmit={handleGenerateMappings}
-              isProcessing={isProcessing}
-            />
+            <InputSection onSubmit={handleGenerateMappings} isProcessing={isProcessing} />
           </Box>
 
           {/* Analysis Section with Tabs */}
@@ -373,27 +354,13 @@ const Dashboard = () => {
               }}
             >
               {activeTab === 0 && (
-                <Suspense
-                  fallback={
-                    <LoadingFallback message="Loading chain of thoughts..." />
-                  }
-                >
-                  <ChainOfThoughts
-                    steps={thoughtSteps}
-                    isProcessing={isProcessing}
-                  />
+                <Suspense fallback={<LoadingFallback message="Loading chain of thoughts..." />}>
+                  <ChainOfThoughts steps={thoughtSteps} isProcessing={isProcessing} />
                 </Suspense>
               )}
               {activeTab === 1 && (
-                <Suspense
-                  fallback={
-                    <LoadingFallback message="Loading workflow graph..." />
-                  }
-                >
-                  <WorkflowGraph
-                    imageUrl={mode === "dark" ? image_dark : image_light}
-                    isLoading={false}
-                  />
+                <Suspense fallback={<LoadingFallback message="Loading workflow graph..." />}>
+                  <WorkflowGraph />
                 </Suspense>
               )}
             </Box>
@@ -428,11 +395,7 @@ const Dashboard = () => {
           >
             <Suspense
               fallback={
-                <LoadingFallback
-                  message="Loading mapping table..."
-                  size={40}
-                  height="100%"
-                />
+                <LoadingFallback message="Loading mapping table..." size={40} height="100%" />
               }
             >
               <MappingTable
@@ -453,11 +416,7 @@ const Dashboard = () => {
           >
             <Suspense
               fallback={
-                <LoadingFallback
-                  message="Loading feedback section..."
-                  size={28}
-                  height="100%"
-                />
+                <LoadingFallback message="Loading feedback section..." size={28} height="100%" />
               }
             >
               <FeedbackSection
