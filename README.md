@@ -4,6 +4,12 @@ A modern web application for intelligent log parsing and mapping configuration g
 
 ![ParserPilot.ai](src/assets/Crest_Logo.svg)
 
+## 🌐 Live Demo
+
+**Production**: [https://parserpilot.onrender.com/](https://parserpilot.onrender.com/)
+
+> Deployed on Render.com with automatic deployments from the main branch.
+
 ## 🚀 Product Features
 
 - **AI-Powered Log Analysis**: Automatically analyze log files and generate field mappings
@@ -180,6 +186,219 @@ The application uses JWT-based authentication:
 - Consistent naming conventions
 
 ## 📦 Production Deployment
+
+### Render.com Deployment (Recommended)
+
+The application is currently deployed on Render.com with automatic deployments.
+
+#### Live URL
+
+- **Production**: [https://parserpilot.onrender.com/](https://parserpilot.onrender.com/)
+
+#### Features
+
+- ✅ Automatic deployments from Git repository
+- ✅ Free SSL/TLS certificates
+- ✅ Global CDN
+- ✅ Zero-downtime deployments
+- ✅ Automatic health checks
+- ✅ Environment variable management
+
+#### Deployment Steps
+
+1. **Connect Repository**
+   - Sign up at [Render.com](https://render.com)
+   - Create a new "Static Site" service
+   - Connect your GitHub/GitLab repository
+
+2. **Configure Build Settings**
+
+   ```
+   Build Command: npm run build
+   Publish Directory: dist
+   ```
+
+3. **Set Environment Variables**
+   - Add `VITE_API_BASE_URL` with your backend API URL
+
+4. **Deploy**
+   - Render will automatically build and deploy your application
+   - Every push to the main branch triggers a new deployment
+
+#### Custom Domain (Optional)
+
+- Add your custom domain in Render dashboard
+- Update DNS records to point to Render
+- SSL certificates are automatically provisioned
+
+---
+
+### Docker Deployment with Nginx and HTTPS
+
+This application can be deployed using Docker with Nginx as a reverse proxy and HTTPS support.
+
+#### Prerequisites
+
+- Docker and Docker Compose installed
+- SSL certificates (`.crt` and `.key` files)
+- Access to ports 80 and 443
+- .env file with required variables
+
+#### Directory Structure
+
+```
+log-synth-hub/
+├── Dockerfile
+├── docker-compose.yml
+├── nginx/
+│   └── nginx.conf
+├── certs/
+│   ├── cert.crt    # Your SSL certificate
+│   └── cert.key    # Your private key
+└── .env
+```
+
+#### Setup Instructions
+
+1. **Prepare SSL Certificates**
+
+   Place your SSL certificates in the `certs/` directory:
+
+   ```bash
+   mkdir -p certs
+   cp /path/to/your/cert.crt certs/
+   cp /path/to/your/cert.key certs/
+   chmod 600 certs/cert.key
+   ```
+
+2. **Configure Environment Variables**
+
+   Create a `.env` file with required variables:
+
+   ```env
+   VITE_API_BASE_URL=https://your-backend-api-url
+   ```
+
+3. **Build and Start the Container**
+
+   ```bash
+   # Build and start in detached mode
+   sudo docker-compose up -d --build
+
+   # View logs
+   sudo docker-compose logs -f
+
+   # Stop the container
+   sudo docker-compose down
+   ```
+
+4. **Access the Application**
+
+   The application will be accessible on any IP address or domain pointing to your server:
+   - **HTTPS**: `https://YOUR_SERVER_IP:4173` or `https://your-domain.com:4173`
+   - **HTTP**: `http://YOUR_SERVER_IP:4174` (will redirect to HTTPS)
+
+   Examples:
+   - `https://10.50.1.12:4173`
+   - `https://10.50.2.22:4173`
+   - `http://10.50.1.12:4174` (redirects to `https://10.50.1.12:4173`)
+
+   **Note**: You can customize the ports in `docker-compose.yml` by changing the port mappings:
+
+   ```yaml
+   ports:
+     - "4173:443" # External:Internal (HTTPS)
+     - "4174:80" # External:Internal (HTTP)
+   ```
+
+#### Nginx Configuration
+
+The `nginx/nginx.conf` file handles:
+
+- HTTP to HTTPS redirect
+- SSL/TLS configuration
+- React Router support (SPA routing)
+- Static asset caching
+- Security headers
+
+**Generic Server Configuration**: The Nginx configuration uses `server_name _;` which is a catch-all that accepts requests from any IP address or domain name. This means:
+
+- No need to modify the configuration for different server IPs
+- Works with `10.50.1.12`, `10.50.2.22`, or any other IP
+- Works with any domain name pointing to your server
+- Perfect for development and flexible deployment scenarios
+
+#### Firewall Configuration
+
+Ensure the required ports are open:
+
+```bash
+sudo ufw allow 4173/tcp   # HTTPS
+sudo ufw allow 4174/tcp   # HTTP (redirects to HTTPS)
+sudo ufw status
+```
+
+**Note**: If you're using standard ports (80/443), use:
+
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+```
+
+#### Troubleshooting
+
+1. **Check container status**
+
+   ```bash
+   sudo docker ps
+   sudo docker logs parserpilot-ui
+   ```
+
+2. **Test Nginx configuration**
+
+   ```bash
+   sudo docker exec parserpilot-ui nginx -t
+   ```
+
+3. **View Nginx logs**
+
+   ```bash
+   sudo docker exec parserpilot-ui cat /var/log/nginx/error.log
+   ```
+
+4. **Restart container**
+   ```bash
+   sudo docker-compose restart
+   ```
+
+#### SSL Certificate Options
+
+1. **Self-Signed Certificate** (Development)
+
+   ```bash
+   openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+     -keyout certs/cert.key -out certs/cert.crt
+   ```
+
+2. **Let's Encrypt** (Production - Recommended)
+   ```bash
+   sudo apt install certbot
+   sudo certbot certonly --standalone -d your-domain.com
+   sudo cp /etc/letsencrypt/live/your-domain.com/fullchain.pem certs/cert.crt
+   sudo cp /etc/letsencrypt/live/your-domain.com/privkey.pem certs/cert.key
+   ```
+
+#### Performance Optimization
+
+The Docker setup includes:
+
+- Multi-stage builds for smaller image size
+- Gzip and Brotli compression
+- Static asset caching
+- Optimized Nginx configuration
+- Log rotation
+
+### Traditional Deployment
 
 1. Build the production assets:
 
