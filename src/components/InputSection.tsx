@@ -21,7 +21,7 @@ interface ProductOption {
 }
 
 interface InputSectionProps {
-  onSubmit: (data: any) => void;
+  onSubmit: (data: unknown) => void;
   isProcessing: boolean;
 }
 
@@ -114,7 +114,7 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
     const formData = new FormData();
     formData.append("product_name", productName);
     formData.append("product_log_name", logCategory);
-    formData.append("udm_event_type", logType);
+    formData.append("raw_log_type", logType);
     formData.append("raw_logs_path", file);
 
     onSubmit(formData);
