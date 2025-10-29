@@ -3,7 +3,6 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import compression from "vite-plugin-compression";
-import fs from "fs";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -11,18 +10,11 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
   // Validate required environment variables
-  const requiredEnvVars = [
-    "VITE_SERVER_HOST",
-    "VITE_SERVER_PORT",
-    "VITE_CERT_KEY_PATH",
-    "VITE_CERT_CRT_PATH",
-  ];
+  const requiredEnvVars = ["VITE_SERVER_HOST", "VITE_SERVER_PORT"];
 
   for (const envVar of requiredEnvVars) {
     if (!env[envVar]) {
-      throw new Error(
-        `Environment variable ${envVar} is not set. Please check your .env file.`
-      );
+      throw new Error(`Environment variable ${envVar} is not set. Please check your .env file.`);
     }
   }
 
@@ -30,10 +22,6 @@ export default defineConfig(({ mode }) => {
     server: {
       host: env.VITE_SERVER_HOST,
       port: parseInt(env.VITE_SERVER_PORT),
-      https: {
-        key: fs.readFileSync(env.VITE_CERT_KEY_PATH),
-        cert: fs.readFileSync(env.VITE_CERT_CRT_PATH),
-      },
     },
     plugins: [
       react(),

@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "4173:443"   # HTTPS on port 4173
+      - "4174:80"    # HTTP on port 4174 (redirects to HTTPS)
+    volumes:
+      - ./certs:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    container_name: parserpilot-ui
+    restart: unless-stopped
+    environment:
+      - TZ=UTC
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
