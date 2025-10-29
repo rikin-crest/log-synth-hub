@@ -9,20 +9,22 @@ export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), "");
 
-  // Validate required environment variables
-  const requiredEnvVars = ["VITE_SERVER_HOST", "VITE_SERVER_PORT"];
+  // Build server configuration
+  const serverConfig: Record<string, unknown> = {
+    host: env.VITE_SERVER_HOST,
+    port: parseInt(env.VITE_SERVER_PORT),
+  };
 
-  for (const envVar of requiredEnvVars) {
-    if (!env[envVar]) {
-      throw new Error(`Environment variable ${envVar} is not set. Please check your .env file.`);
-    }
+  // Only add HTTPS if certificate paths are provided
+  if (env.VITE_CERT_KEY_PATH && env.VITE_CERT_CRT_PATH) {
+    serverConfig.https = {
+      key: fs.readFileSync(env.VITE_CERT_KEY_PATH),
+      cert: fs.readFileSync(env.VITE_CERT_CRT_PATH),
+    };
   }
 
   return {
-    server: {
-      host: env.VITE_SERVER_HOST,
-      port: parseInt(env.VITE_SERVER_PORT),
-    },
+    server: serverConfig,
     plugins: [
       react(),
       mode === "development" && componentTagger(),
