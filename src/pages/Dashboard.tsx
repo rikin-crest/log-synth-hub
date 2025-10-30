@@ -11,6 +11,11 @@ import {
   Tab,
   useTheme,
   useMediaQuery,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 import {
   Logout,
@@ -19,6 +24,7 @@ import {
   AccountTree,
   Brightness4,
   Brightness7,
+  Person,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -47,6 +53,8 @@ const Dashboard = () => {
   const [thoughtSteps, setThoughtSteps] = useState<string[]>([]);
   const [mappingData, setMappingData] = useState<Record<string, unknown>[]>([]);
   const [activeTab, setActiveTab] = useState(0);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [userName, setUserName] = useState<string>("User");
 
   // TanStack Query hooks
   const logoutMutation = useLogout();
@@ -57,15 +65,34 @@ const Dashboard = () => {
   // Compute loading state from mutations
   const isProcessing = startWorkflowMutation.isPending || resumeWorkflowMutation.isPending;
 
-  // Check authentication on mount
+  // Check authentication on mount and load user info
   useEffect(() => {
     if (!isAuthenticated()) {
       navigate("/", { replace: true });
+    } else {
+      // Load user info from localStorage
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          setUserName(userStr.toString() || "User");
+        } catch (e) {
+          console.error("Failed to parse user data", e);
+        }
+      }
     }
   }, [navigate]);
 
   const handleLogout = () => {
+    handleMenuClose();
     logoutMutation.mutate();
+  };
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
   };
 
   const handleGenerateMappings = (formData: FormData) => {
@@ -185,20 +212,64 @@ const Dashboard = () => {
               <Brightness4 sx={{ fontSize: { xs: 20, md: 24 } }} />
             )}
           </IconButton>
-          <IconButton color="inherit" onClick={handleLogout} size={isMobile ? "small" : "medium"}>
-            <Logout sx={{ fontSize: { xs: 20, md: 24 } }} />
+          <IconButton onClick={handleMenuOpen} size={isMobile ? "small" : "medium"}>
+            <Avatar
+              sx={{
+                bgcolor: "rgba(255, 255, 255, 0.2)",
+                width: { xs: 32, md: 40 },
+                height: { xs: 32, md: 40 },
+                fontSize: { xs: "0.875rem", md: "1rem" },
+                fontWeight: 600,
+              }}
+            >
+              {userName.charAt(0).toUpperCase()}
+            </Avatar>
           </IconButton>
-          <Avatar
-            sx={{
-              ml: { xs: 1, md: 2 },
-              bgcolor: "rgba(255, 255, 255, 0.2)",
-              width: { xs: 32, md: 40 },
-              height: { xs: 32, md: 40 },
-              fontSize: { xs: "0.875rem", md: "1rem" },
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+            PaperProps={{
+              sx: {
+                mt: 1.5,
+              },
             }}
           >
-            U
-          </Avatar>
+            <MenuItem>
+              <ListItemIcon>
+                <Person fontSize="small" />
+              </ListItemIcon>
+              <ListItemText
+                sx={{
+                  pb: 0.2,
+                }}
+              >
+                {userName}
+              </ListItemText>
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={handleLogout}>
+              <ListItemIcon>
+                <Logout fontSize="small" color="error" />
+              </ListItemIcon>
+              <ListItemText
+                sx={{
+                  color: "error.main",
+                  pb: 0.2,
+                }}
+              >
+                Logout
+              </ListItemText>
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 

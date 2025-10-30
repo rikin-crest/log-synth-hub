@@ -10,11 +10,7 @@ export interface LoginResponse {
   access_token?: string;
   token_type?: string;
   message?: string;
-  user?: {
-    id: string;
-    username: string;
-    email?: string;
-  };
+  user?: string;
 }
 
 export const loginUser = async (credentials: LoginCredentials): Promise<LoginResponse | null> => {
@@ -49,7 +45,7 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
 
   // Store user info if provided
   if (data.user) {
-    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("user", data.user);
   }
 
   return data;
