@@ -1,16 +1,24 @@
-import { GenerateConfPayload, ResumeWorkflowPayload, WorkflowResponse } from "@/components/types";
+import {
+  GenerateConfPayload,
+  ResumeWorkflowPayload,
+  ThoughtStep,
+  WorkflowResponse,
+} from "@/components/types";
 import { API_CONFIG } from "./api";
 import { toast } from "sonner";
 import { getAuthHeader, handleUnauthorized } from "./auth";
 // import { sample_res } from "../../sample_res";
 
-export const startWorkflow = async (payload: FormData): Promise<WorkflowResponse | null> => {
-  // return sample_res;
+export const startWorkflow = async (
+  payload: FormData,
+  onThought?: (thought: ThoughtStep) => void
+): Promise<WorkflowResponse | null> => {
   try {
     const response = await fetch(`${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.START_WORKFLOW}`, {
       method: "POST",
       headers: {
         ...getAuthHeader(),
+        Accept: "text/event-stream",
       },
       body: payload,
     });
@@ -55,12 +63,56 @@ export const startWorkflow = async (payload: FormData): Promise<WorkflowResponse
       return null;
     }
 
-    return response.json();
+    console.log("Response:", response);
+
+    // Handle streaming response
+    if (response.body) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let result: WorkflowResponse | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer = decoder.decode(value, { stream: true });
+        console.log("buffer", buffer);
+
+        // Try to parse the buffer as a complete JSON object
+        try {
+          const jsonData = JSON.parse(buffer.trim());
+          if (jsonData.node_name && jsonData.message_type) {
+            // This is a valid thought object
+            if (onThought) {
+              onThought(jsonData);
+            }
+            buffer = ""; // Clear buffer after successful parse
+          } else if (jsonData.event === "result") {
+            // Handle final result
+            result = jsonData.data;
+            buffer = "";
+          } else if (jsonData.event === "error") {
+            throw new Error(jsonData.data?.message || "An error occurred during processing");
+          }
+        } catch (e) {
+          // If we can't parse the buffer, throw an error
+          throw new Error(
+            `Failed to parse stream data: ${e instanceof Error ? e.message : "Unknown error"}`
+          );
+        }
+      }
+
+      if (result) {
+        return result;
+      }
+    }
+
+    throw new Error("No valid response data received");
   } catch (e: unknown) {
     const errorMessage = (e as { message: string })?.message || "Failed to start workflow!";
-    console.log("errorMessage", errorMessage);
+    console.error("Workflow error:", errorMessage, e);
     toast.error(errorMessage);
-
     return null;
   }
 };

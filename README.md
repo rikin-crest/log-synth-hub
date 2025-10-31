@@ -43,11 +43,11 @@ A modern web application for intelligent log parsing and mapping configuration g
 
 ## 📋 Prerequisites
 
-- **Node.js** >= 18.x
+- **Node.js** >= 20.x
 - **npm** or **yarn** or **bun**
 - **Python 3.7+** (for GitGuardian Shield)
 - **pip** (Python package manager)
-- **GitGuardian API Key** (for secret scanning)
+- **GitGuardian Shield** (for secret scanning) - Install with `pip install --user ggshield` and ensure it's in your PATH
 - SSL certificates (for HTTPS development server)
 
 ## 🔧 Installation

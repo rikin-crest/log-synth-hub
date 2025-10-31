@@ -33,6 +33,7 @@ import { useLogout } from "../hooks/use-auth";
 import { useThemeMode } from "../contexts/ThemeContext";
 import { useStartWorkflow, useResumeWorkflow, useGenerateConf } from "../hooks/use-workflow";
 import InputSection from "../components/InputSection";
+import { ThoughtStep } from "../components/types";
 
 // Lazy load heavy components
 const ChainOfThoughts = lazy(() => import("../components/ChainOfThoughts"));
@@ -50,7 +51,7 @@ const Dashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { mode, toggleTheme } = useThemeMode();
-  const [thoughtSteps, setThoughtSteps] = useState<string[]>([]);
+  const [thoughtSteps, setThoughtSteps] = useState<ThoughtStep[]>([]);
   const [mappingData, setMappingData] = useState<Record<string, unknown>[]>([]);
   const [activeTab, setActiveTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -99,14 +100,48 @@ const Dashboard = () => {
     setThoughtSteps([]);
     setMappingData([]);
 
-    startWorkflowMutation.mutate(formData, {
-      onSuccess: (result) => {
-        if (result) {
-          addToSessionStorage("thread_id", result["thread_id"]);
-          setMappingData(result.output || []);
-        }
+    // Process streaming thought steps
+    const processThoughtStep = (thought: ThoughtStep) => {
+      if (thought) {
+        setThoughtSteps((prevSteps) => {
+          // Check if this is an update to an existing step or a new one
+          const existingIndex = prevSteps.findIndex(
+            (step) =>
+              step.node_name === thought.node_name && step.message_type === thought.message_type
+          );
+
+          if (existingIndex >= 0) {
+            // Update existing step
+            const newSteps = [...prevSteps];
+            newSteps[existingIndex] = {
+              ...newSteps[existingIndex],
+              ...thought,
+              content: thought.content || newSteps[existingIndex].content,
+            };
+            return newSteps;
+          } else {
+            // Add new step
+            return [...prevSteps, thought];
+          }
+        });
+      }
+    };
+
+    // Start the workflow with streaming support
+    startWorkflowMutation.mutate(
+      {
+        formData,
+        onThought: processThoughtStep,
       },
-    });
+      {
+        onSuccess: (result) => {
+          if (result) {
+            addToSessionStorage("thread_id", result.thread_id);
+            setMappingData(result.output || []);
+          }
+        },
+      }
+    );
   };
 
   const handleRerun = (feedback: string) => {
