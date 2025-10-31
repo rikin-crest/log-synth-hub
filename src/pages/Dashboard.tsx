@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense, useRef } from "react";
 import {
   Box,
   Typography,
@@ -6,7 +6,6 @@ import {
   Toolbar,
   IconButton,
   Avatar,
-  Chip,
   Tabs,
   Tab,
   useTheme,
@@ -66,6 +65,17 @@ const Dashboard = () => {
   // Compute loading state from mutations
   const isProcessing = startWorkflowMutation.isPending || resumeWorkflowMutation.isPending;
 
+  // Ref for auto-scrolling the thoughts container
+  const thoughtsEndRef = useRef<HTMLDivElement>(null);
+  const thoughtsContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new thoughts are added
+  useEffect(() => {
+    if (thoughtSteps.length > 0 && thoughtsEndRef.current) {
+      thoughtsEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [thoughtSteps]);
+
   // Check authentication on mount and load user info
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -103,27 +113,7 @@ const Dashboard = () => {
     // Process streaming thought steps
     const processThoughtStep = (thought: ThoughtStep) => {
       if (thought) {
-        setThoughtSteps((prevSteps) => {
-          // Check if this is an update to an existing step or a new one
-          const existingIndex = prevSteps.findIndex(
-            (step) =>
-              step.node_name === thought.node_name && step.message_type === thought.message_type
-          );
-
-          if (existingIndex >= 0) {
-            // Update existing step
-            const newSteps = [...prevSteps];
-            newSteps[existingIndex] = {
-              ...newSteps[existingIndex],
-              ...thought,
-              content: thought.content || newSteps[existingIndex].content,
-            };
-            return newSteps;
-          } else {
-            // Add new step
-            return [...prevSteps, thought];
-          }
-        });
+        setThoughtSteps((prevSteps) => [...prevSteps, thought]);
       }
     };
 
@@ -413,15 +403,6 @@ const Dashboard = () => {
                     >
                       {isMobile ? "Thoughts" : "Chain of Thoughts"}
                     </Typography>
-                    {thoughtSteps.length > 0 && (
-                      <Chip
-                        label={`${thoughtSteps.length} steps`}
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                        sx={{ fontSize: { xs: "0.65rem", md: "0.75rem" } }}
-                      />
-                    )}
                   </Box>
                 }
               />
@@ -452,6 +433,7 @@ const Dashboard = () => {
 
             {/* Tab Content */}
             <Box
+              ref={thoughtsContainerRef}
               sx={{
                 p: { xs: 1.5, md: 2 },
                 overflow: "auto",
@@ -461,7 +443,10 @@ const Dashboard = () => {
             >
               {activeTab === 0 && (
                 <Suspense fallback={<LoadingFallback message="Loading chain of thoughts..." />}>
-                  <ChainOfThoughts steps={thoughtSteps} isProcessing={isProcessing} />
+                  <>
+                    <ChainOfThoughts steps={thoughtSteps} isProcessing={isProcessing} />
+                    <div ref={thoughtsEndRef} />
+                  </>
                 </Suspense>
               )}
               {activeTab === 1 && (

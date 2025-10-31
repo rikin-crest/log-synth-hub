@@ -106,112 +106,162 @@ const ChainOfThoughts = ({ steps, isProcessing }: ChainOfThoughtsProps) => {
             </Box>
           </Box>
 
-          {/* Tool Calls */}
+          {/* Tool Calls Group */}
           {step.tool_calls?.length > 0 && (
-            <Box sx={{ p: 1.5 }}>
-              {step.tool_calls?.map((toolCall, toolIndex) => (
-                <Accordion
-                  key={toolIndex}
+            <Box sx={{ px: 2, pb: 2, pt: 2 }}>
+              <Accordion
+                defaultExpanded={false}
+                sx={{
+                  "&:before": { display: "none" },
+                  boxShadow: "none",
+                  border: 1,
+                  borderColor: "divider",
+                  "&.Mui-expanded": {
+                    mt: 0,
+                    mb: 1,
+                  },
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ExpandMore />}
                   sx={{
-                    mb: toolIndex < step.tool_calls?.length - 1 ? 1 : 0,
-                    "&:before": { display: "none" },
-                    boxShadow: "none",
-                    border: 1,
-                    borderColor: "divider",
+                    minHeight: 48,
+                    px: 2,
+                    "& .MuiAccordionSummary-content": {
+                      my: 1,
+                      alignItems: "center",
+                      gap: 1.5,
+                    },
+                    "&.Mui-expanded": {
+                      minHeight: 48,
+                    },
                   }}
                 >
-                  <AccordionSummary
-                    expandIcon={<ExpandMore />}
-                    sx={{
-                      minHeight: 48,
-                      "& .MuiAccordionSummary-content": {
-                        my: 1,
-                      },
-                    }}
-                  >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexGrow: 1 }}>
-                      <Code sx={{ fontSize: 18, color: "info.main" }} />
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {toolCall.name}
-                      </Typography>
-                    </Box>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ pt: 0 }}>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                      {/* Tool Args */}
-                      <Box>
-                        <Typography
-                          variant="caption"
+                  <Code sx={{ fontSize: 18, color: "info.main" }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                    {step.tool_calls.length} Tool Call{step.tool_calls.length > 1 ? "s" : ""}
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ p: 0, borderTop: 1, borderColor: "divider" }}>
+                  <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2.5 }}>
+                    {step.tool_calls.map((toolCall, toolIndex) => (
+                      <Box
+                        key={toolIndex}
+                        sx={{
+                          border: 1,
+                          borderColor: "divider",
+                          borderRadius: 1,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <Accordion
                           sx={{
-                            color: "text.secondary",
-                            fontWeight: 600,
-                            mb: 0.5,
-                            display: "block",
+                            "&:before": { display: "none" },
+                            boxShadow: "none",
+                            m: 0,
+                            "&.Mui-expanded": {
+                              mt: 0,
+                              mb: 0.5,
+                            },
                           }}
                         >
-                          Arguments:
-                        </Typography>
-                        <Box
-                          sx={{
-                            bgcolor: "background.default",
-                            p: 1.5,
-                            borderRadius: 1,
-                            overflow: "auto",
-                            maxHeight: 150,
-                          }}
-                        >
-                          <Typography
-                            variant="body2"
+                          <AccordionSummary
+                            expandIcon={<ExpandMore />}
                             sx={{
-                              fontFamily: "monospace",
-                              fontSize: "0.75rem",
-                              whiteSpace: "pre-wrap",
-                              wordBreak: "break-word",
+                              minHeight: 40,
+                              backgroundColor: "background.default",
+                              "& .MuiAccordionSummary-content": {
+                                my: 0.5,
+                                alignItems: "center",
+                                gap: 1,
+                              },
                             }}
                           >
-                            {toolCall.args}
-                          </Typography>
-                        </Box>
+                            <Code sx={{ fontSize: 16, color: "info.main" }} />
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {toolCall.name}
+                            </Typography>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ p: 0, borderTop: 1, borderColor: "divider" }}>
+                            <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+                              {/* Tool Args */}
+                              <Box>
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: "text.secondary",
+                                    fontWeight: 600,
+                                    mb: 0.5,
+                                    display: "block",
+                                  }}
+                                >
+                                  Arguments:
+                                </Typography>
+                                <Box
+                                  sx={{
+                                    bgcolor: "background.default",
+                                    p: 1.5,
+                                    borderRadius: 1,
+                                    overflow: "auto",
+                                    maxHeight: 150,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      fontFamily: "monospace",
+                                      fontSize: "0.75rem",
+                                      whiteSpace: "pre-wrap",
+                                      wordBreak: "break-word",
+                                    }}
+                                  >
+                                    {toolCall.args}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              {/* Tool Output */}
+                              <Box>
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: "text.secondary",
+                                    fontWeight: 600,
+                                    mb: 0.5,
+                                    display: "block",
+                                  }}
+                                >
+                                  Output:
+                                </Typography>
+                                <Box
+                                  sx={{
+                                    bgcolor: "background.default",
+                                    p: 1.5,
+                                    borderRadius: 1,
+                                    overflow: "auto",
+                                    maxHeight: 150,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      fontFamily: "monospace",
+                                      fontSize: "0.75rem",
+                                      whiteSpace: "pre-wrap",
+                                      wordBreak: "break-word",
+                                    }}
+                                  >
+                                    {toolCall.output}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Box>
+                          </AccordionDetails>
+                        </Accordion>
                       </Box>
-                      {/* Tool Output */}
-                      <Box>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: "text.secondary",
-                            fontWeight: 600,
-                            mb: 0.5,
-                            display: "block",
-                          }}
-                        >
-                          Output:
-                        </Typography>
-                        <Box
-                          sx={{
-                            bgcolor: "background.default",
-                            p: 1.5,
-                            borderRadius: 1,
-                            overflow: "auto",
-                            maxHeight: 150,
-                          }}
-                        >
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontFamily: "monospace",
-                              fontSize: "0.75rem",
-                              whiteSpace: "pre-wrap",
-                              wordBreak: "break-word",
-                            }}
-                          >
-                            {toolCall.output}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
-              ))}
+                    ))}
+                  </Box>
+                </AccordionDetails>
+              </Accordion>
             </Box>
           )}
         </Box>

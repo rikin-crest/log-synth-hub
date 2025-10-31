@@ -77,26 +77,24 @@ export const startWorkflow = async (
         if (done) break;
 
         buffer = decoder.decode(value, { stream: true });
-        console.log("buffer", buffer);
 
-        // Try to parse the buffer as a complete JSON object
+        console.log({ buffer });
+
         try {
-          const jsonData = JSON.parse(buffer.trim());
+          const jsonData = JSON.parse(buffer);
           if (jsonData.node_name && jsonData.message_type) {
             // This is a valid thought object
             if (onThought) {
               onThought(jsonData);
             }
-            buffer = ""; // Clear buffer after successful parse
-          } else if (jsonData.event === "result") {
+          } else if (jsonData.output) {
             // Handle final result
-            result = jsonData.data;
-            buffer = "";
+            result = jsonData;
           } else if (jsonData.event === "error") {
             throw new Error(jsonData.data?.message || "An error occurred during processing");
           }
         } catch (e) {
-          // If we can't parse the buffer, throw an error
+          console.error("Error parsing JSON:", buffer);
           throw new Error(
             `Failed to parse stream data: ${e instanceof Error ? e.message : "Unknown error"}`
           );
@@ -108,7 +106,7 @@ export const startWorkflow = async (
       }
     }
 
-    throw new Error("No valid response data received");
+    throw new Error("No valid mapping data received!");
   } catch (e: unknown) {
     const errorMessage = (e as { message: string })?.message || "Failed to start workflow!";
     console.error("Workflow error:", errorMessage, e);
