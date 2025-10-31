@@ -43,12 +43,14 @@ A modern web application for intelligent log parsing and mapping configuration g
 
 ## 📋 Prerequisites
 
-- **Node.js** >= 18.x
+### Core Requirements
+- **Node.js** >= 20.x
 - **npm** or **yarn** or **bun**
-- **Python 3.7+** (for GitGuardian Shield)
+
+### For GitGuardian Shield (Optional)
+- **Python 3.7+**
 - **pip** (Python package manager)
-- **GitGuardian API Key** (for secret scanning)
-- SSL certificates (for HTTPS development server)
+- **GitGuardian API Key** (only needed for pre-commit secret scanning)
 
 ## 🔧 Installation
 
@@ -81,13 +83,14 @@ A modern web application for intelligent log parsing and mapping configuration g
 
    ```env
    # API Configuration
-   VITE_API_BASE_URL=https://your-api-server:port
+   VITE_API_BASE_URL=https://your-api-server
 
-   # Server Configuration (for Vite dev server)
-   VITE_SERVER_PORT=8080
-   VITE_SERVER_HOST=0.0.0.0
-   VITE_CERT_KEY_PATH=/path/to/cert.key
-   VITE_CERT_CRT_PATH=/path/to/cert.crt
+   # Server Configuration (optional, for vite dev server)
+   # VITE_SERVER_PORT=8080
+   # VITE_SERVER_HOST=0.0.0.0
+
+   # GitGuardian API KEY (optional, for secret scanning before commit but required to commit)
+   GITGUARDIAN_API_KEY=your_git_guardian_api_key
    ```
 
 4. **Start the development server**
@@ -112,17 +115,14 @@ A modern web application for intelligent log parsing and mapping configuration g
 
 ## 🔐 Environment Variables
 
-| Variable              | Description                         | Required | Default   |
-| --------------------- | ----------------------------------- | -------- | --------- |
-| `VITE_SERVER_PORT`    | Development server port             | ✅ Yes   | `8080`    |
-| `VITE_SERVER_HOST`    | Development server host             | ✅ Yes   | `0.0.0.0` |
-| `VITE_CERT_KEY_PATH`  | SSL certificate key path            | ✅ Yes   | -         |
-| `VITE_CERT_CRT_PATH`  | SSL certificate path                | ✅ Yes   | -         |
-| `GITGUARDIAN_API_KEY` | GitGuardian API key for secret scan | ✅ Yes   | -         |
+| Variable              | Description                                                                 | Required | Default           |
+|-----------------------|-----------------------------------------------------------------------------|----------|-------------------|
+| `VITE_API_BASE_URL`   | Base URL for API requests                                                   | ✅ Yes   | `https://your-api-server` |
+| `VITE_SERVER_PORT`    | Development server port                                                     | ❌ No    | `8080`            |
+| `VITE_SERVER_HOST`    | Development server host                                                     | ❌ No    | `0.0.0.0`         |
+| `GITGUARDIAN_API_KEY` | GitGuardian API key for secret scanning (only required for pre-commit hook) | ❌ No    | -                 |
 
 **Note:** Create a `.env` file in the project root, copy the variables from `.env.example` and change the values as per your environment.
-
-**Important:** The GITGUARDIAN_API_KEY is required as it enforces secret scanning on commit. but it is not required to start the application.
 
 ## 🔒 Security
 
