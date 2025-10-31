@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense, useRef } from "react";
 import {
   Box,
   Typography,
@@ -6,7 +6,6 @@ import {
   Toolbar,
   IconButton,
   Avatar,
-  Chip,
   Tabs,
   Tab,
   useTheme,
@@ -33,6 +32,7 @@ import { useLogout } from "../hooks/use-auth";
 import { useThemeMode } from "../contexts/ThemeContext";
 import { useStartWorkflow, useResumeWorkflow, useGenerateConf } from "../hooks/use-workflow";
 import InputSection from "../components/InputSection";
+import { ThoughtStep } from "../components/types";
 
 // Lazy load heavy components
 const ChainOfThoughts = lazy(() => import("../components/ChainOfThoughts"));
@@ -50,7 +50,7 @@ const Dashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { mode, toggleTheme } = useThemeMode();
-  const [thoughtSteps, setThoughtSteps] = useState<string[]>([]);
+  const [thoughtSteps, setThoughtSteps] = useState<ThoughtStep[]>([]);
   const [mappingData, setMappingData] = useState<Record<string, unknown>[]>([]);
   const [activeTab, setActiveTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -64,6 +64,17 @@ const Dashboard = () => {
 
   // Compute loading state from mutations
   const isProcessing = startWorkflowMutation.isPending || resumeWorkflowMutation.isPending;
+
+  // Ref for auto-scrolling the thoughts container
+  const thoughtsEndRef = useRef<HTMLDivElement>(null);
+  const thoughtsContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new thoughts are added
+  useEffect(() => {
+    if (thoughtSteps.length > 0 && thoughtsEndRef.current) {
+      thoughtsEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [thoughtSteps]);
 
   // Check authentication on mount and load user info
   useEffect(() => {
@@ -99,14 +110,28 @@ const Dashboard = () => {
     setThoughtSteps([]);
     setMappingData([]);
 
-    startWorkflowMutation.mutate(formData, {
-      onSuccess: (result) => {
-        if (result) {
-          addToSessionStorage("thread_id", result["thread_id"]);
-          setMappingData(result.output || []);
-        }
+    // Process streaming thought steps
+    const processThoughtStep = (thought: ThoughtStep) => {
+      if (thought) {
+        setThoughtSteps((prevSteps) => [...prevSteps, thought]);
+      }
+    };
+
+    // Start the workflow with streaming support
+    startWorkflowMutation.mutate(
+      {
+        formData,
+        onThought: processThoughtStep,
       },
-    });
+      {
+        onSuccess: (result) => {
+          if (result) {
+            addToSessionStorage("thread_id", result.thread_id);
+            setMappingData(result.output || []);
+          }
+        },
+      }
+    );
   };
 
   const handleRerun = (feedback: string) => {
@@ -378,15 +403,6 @@ const Dashboard = () => {
                     >
                       {isMobile ? "Thoughts" : "Chain of Thoughts"}
                     </Typography>
-                    {thoughtSteps.length > 0 && (
-                      <Chip
-                        label={`${thoughtSteps.length} steps`}
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                        sx={{ fontSize: { xs: "0.65rem", md: "0.75rem" } }}
-                      />
-                    )}
                   </Box>
                 }
               />
@@ -417,6 +433,7 @@ const Dashboard = () => {
 
             {/* Tab Content */}
             <Box
+              ref={thoughtsContainerRef}
               sx={{
                 p: { xs: 1.5, md: 2 },
                 overflow: "auto",
@@ -426,7 +443,10 @@ const Dashboard = () => {
             >
               {activeTab === 0 && (
                 <Suspense fallback={<LoadingFallback message="Loading chain of thoughts..." />}>
-                  <ChainOfThoughts steps={thoughtSteps} isProcessing={isProcessing} />
+                  <>
+                    <ChainOfThoughts steps={thoughtSteps} isProcessing={isProcessing} />
+                    <div ref={thoughtsEndRef} />
+                  </>
                 </Suspense>
               )}
               {activeTab === 1 && (

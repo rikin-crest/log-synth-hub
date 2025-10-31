@@ -409,7 +409,7 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
       <Button
         variant="contained"
         size="large"
-        startIcon={<AutoAwesome />}
+        startIcon={isProcessing ? undefined : <AutoAwesome />}
         onClick={handleSubmit}
         disabled={isProcessing}
         sx={{
@@ -417,6 +417,8 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           fontSize: "1rem",
           fontWeight: 600,
           cursor: isProcessing ? "no-drop" : "pointer",
+          position: "relative",
+          overflow: "hidden",
           "&:disabled": {
             color: "#9ca3af !important",
           },
@@ -424,9 +426,26 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           "&:hover": {
             background: "linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))",
           },
+          "&::before": isProcessing
+            ? {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: "-100%",
+                width: "100%",
+                height: "100%",
+                background:
+                  "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)",
+                animation: "shimmer 1.5s infinite",
+              }
+            : {},
+          "@keyframes shimmer": {
+            "0%": { left: "-100%" },
+            "100%": { left: "100%" },
+          },
         }}
       >
-        {isProcessing ? "Generating..." : "Generate Mappings"}
+        {isProcessing ? "Generating Mappings..." : "Generate Mappings"}
       </Button>
     </Box>
   );
