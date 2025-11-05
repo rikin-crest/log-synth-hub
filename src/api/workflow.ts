@@ -1,16 +1,24 @@
-import { GenerateConfPayload, ResumeWorkflowPayload, WorkflowResponse } from "@/components/types";
+import {
+  GenerateConfPayload,
+  ResumeWorkflowPayload,
+  ThoughtStep,
+  WorkflowResponse,
+} from "@/components/types";
 import { API_CONFIG } from "./api";
 import { toast } from "sonner";
 import { getAuthHeader, handleUnauthorized } from "./auth";
 // import { sample_res } from "../../sample_res";
 
-export const startWorkflow = async (payload: FormData): Promise<WorkflowResponse | null> => {
-  // return sample_res;
+export const startWorkflow = async (
+  payload: FormData,
+  onThought?: (thought: ThoughtStep) => void
+): Promise<WorkflowResponse | null> => {
   try {
     const response = await fetch(`${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.START_WORKFLOW}`, {
       method: "POST",
       headers: {
         ...getAuthHeader(),
+        Accept: "text/event-stream",
       },
       body: payload,
     });
@@ -55,19 +63,105 @@ export const startWorkflow = async (payload: FormData): Promise<WorkflowResponse
       return null;
     }
 
-    return response.json();
+    console.log("Response:", response);
+
+    // Handle streaming response
+    if (!response.body) {
+      throw new Error("No response body received");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulatedBuffer = "";
+    let result: WorkflowResponse | null = null;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      // Decode the chunk and append to our accumulated buffer
+      const chunk = decoder.decode(value, { stream: true });
+      accumulatedBuffer += chunk;
+
+      console.log({ chunk, accumulatedBuffer });
+
+      // Process all complete JSON objects in the accumulated buffer
+      let startIndex = 0;
+      let endIndex = 0;
+      let jsonProcessed = false;
+
+      while (startIndex < accumulatedBuffer.length) {
+        // Find the start of a JSON object
+        startIndex = accumulatedBuffer.indexOf("{", startIndex);
+        if (startIndex === -1) break;
+
+        // Try to parse from startIndex to end of buffer
+        try {
+          const jsonStr = accumulatedBuffer.slice(startIndex);
+          const jsonData = JSON.parse(jsonStr);
+
+          // If we get here, we have a valid JSON object
+          endIndex = startIndex + jsonStr.length;
+          jsonProcessed = true;
+
+          if (jsonData.agent_name && jsonData.message_type) {
+            // This is a valid thought object
+            if (onThought) {
+              onThought(jsonData);
+            }
+          } else if (jsonData.output) {
+            // Handle final result
+            result = jsonData;
+          } else if (jsonData.event === "error") {
+            throw new Error(jsonData.data?.message || "An error occurred during processing");
+          }
+
+          // Move startIndex to after this JSON object
+          startIndex = endIndex;
+        } catch (e: unknown) {
+          console.error("Error parsing JSON chunk:", e);
+          // If parsing fails, we might have a partial JSON object at the end
+          break;
+        }
+      }
+
+      // If we processed any complete JSON objects, remove them from the buffer
+      if (jsonProcessed && endIndex > 0) {
+        accumulatedBuffer = accumulatedBuffer.slice(endIndex);
+      }
+    }
+
+    // After the stream ends, try to process any remaining data in the buffer
+    if (accumulatedBuffer.trim()) {
+      try {
+        const jsonData = JSON.parse(accumulatedBuffer.trim());
+        if (jsonData.agent_name && jsonData.message_type) {
+          if (onThought) onThought(jsonData);
+        } else if (jsonData.output) {
+          result = jsonData;
+        }
+      } catch (e) {
+        console.error("Error parsing final JSON chunk:", accumulatedBuffer, e);
+      }
+    }
+
+    if (result) {
+      return result;
+    }
+
+    throw new Error("No valid mapping data received!");
   } catch (e: unknown) {
     const errorMessage = (e as { message: string })?.message || "Failed to start workflow!";
-    console.log("errorMessage", errorMessage);
+    console.error("Workflow error:", errorMessage, e);
     toast.error(errorMessage);
-
     return null;
   }
 };
 
 export const resumeWorkflow = async (
   payload: ResumeWorkflowPayload,
-  headers: HeadersInit
+  headers: HeadersInit,
+  onThought?: (thought: ThoughtStep) => void
 ): Promise<WorkflowResponse | null> => {
   try {
     const response = await fetch(`${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.RESUME_WORKFLOW}`, {
@@ -76,6 +170,7 @@ export const resumeWorkflow = async (
       headers: {
         ...getAuthHeader(),
         ...headers,
+        Accept: "text/event-stream",
       },
     });
 
@@ -119,12 +214,95 @@ export const resumeWorkflow = async (
       return null;
     }
 
-    return response.json();
+    // Handle streaming response
+    if (!response.body) {
+      throw new Error("No response body received");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulatedBuffer = "";
+    let result: WorkflowResponse | null = null;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      // Decode the chunk and append to our accumulated buffer
+      const chunk = decoder.decode(value, { stream: true });
+      accumulatedBuffer += chunk;
+
+      console.log({ chunk, accumulatedBuffer });
+
+      // Process all complete JSON objects in the accumulated buffer
+      let startIndex = 0;
+      let endIndex = 0;
+      let jsonProcessed = false;
+
+      while (startIndex < accumulatedBuffer.length) {
+        // Find the start of a JSON object
+        startIndex = accumulatedBuffer.indexOf("{", startIndex);
+        if (startIndex === -1) break;
+
+        // Try to parse from startIndex to end of buffer
+        try {
+          const jsonStr = accumulatedBuffer.slice(startIndex);
+          const jsonData = JSON.parse(jsonStr);
+
+          // If we get here, we have a valid JSON object
+          endIndex = startIndex + jsonStr.length;
+          jsonProcessed = true;
+
+          if (jsonData.agent_name && jsonData.message_type) {
+            // This is a valid thought object
+            if (onThought) {
+              onThought(jsonData);
+            }
+          } else if (jsonData.output) {
+            // Handle final result
+            result = jsonData;
+          } else if (jsonData.event === "error") {
+            throw new Error(jsonData.data?.message || "An error occurred during processing");
+          }
+
+          // Move startIndex to after this JSON object
+          startIndex = endIndex;
+        } catch (e: unknown) {
+          console.error("Error parsing JSON chunk:", e);
+          // If parsing fails, we might have a partial JSON object at the end
+          break;
+        }
+      }
+
+      // If we processed any complete JSON objects, remove them from the buffer
+      if (jsonProcessed && endIndex > 0) {
+        accumulatedBuffer = accumulatedBuffer.slice(endIndex);
+      }
+    }
+
+    // After the stream ends, try to process any remaining data in the buffer
+    if (accumulatedBuffer.trim()) {
+      try {
+        const jsonData = JSON.parse(accumulatedBuffer.trim());
+        if (jsonData.agent_name && jsonData.message_type) {
+          if (onThought) onThought(jsonData);
+        } else if (jsonData.output) {
+          result = jsonData;
+        }
+      } catch (e) {
+        console.error("Error parsing final JSON chunk:", accumulatedBuffer, e);
+      }
+    }
+
+    if (result) {
+      return result;
+    }
+
+    throw new Error("No valid mapping data received!");
   } catch (e: unknown) {
     const errorMessage = (e as { message: string })?.message || "Failed to resume workflow!";
-    console.log("errorMessage", errorMessage);
+    console.error("Workflow error:", errorMessage, e);
     toast.error(errorMessage);
-
     return null;
   }
 };

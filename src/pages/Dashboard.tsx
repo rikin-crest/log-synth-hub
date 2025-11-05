@@ -6,7 +6,6 @@ import {
   Toolbar,
   IconButton,
   Avatar,
-  Chip,
   Tabs,
   Tab,
   useTheme,
@@ -25,6 +24,7 @@ import {
   Brightness4,
   Brightness7,
   Person,
+  Fullscreen,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -33,6 +33,7 @@ import { useLogout } from "../hooks/use-auth";
 import { useThemeMode } from "../contexts/ThemeContext";
 import { useStartWorkflow, useResumeWorkflow, useGenerateConf } from "../hooks/use-workflow";
 import InputSection from "../components/InputSection";
+import { ThoughtStep, AgentThoughts } from "../components/types";
 
 // Lazy load heavy components
 const ChainOfThoughts = lazy(() => import("../components/ChainOfThoughts"));
@@ -50,11 +51,13 @@ const Dashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { mode, toggleTheme } = useThemeMode();
-  const [thoughtSteps, setThoughtSteps] = useState<string[]>([]);
+  const [agentThoughts, setAgentThoughts] = useState<AgentThoughts[]>([]);
+  const [currentInvocationNumber, setCurrentInvocationNumber] = useState<number>(0);
   const [mappingData, setMappingData] = useState<Record<string, unknown>[]>([]);
   const [activeTab, setActiveTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [userName, setUserName] = useState<string>("User");
+  const [isThoughtsFullscreen, setIsThoughtsFullscreen] = useState(false);
 
   // TanStack Query hooks
   const logoutMutation = useLogout();
@@ -96,23 +99,63 @@ const Dashboard = () => {
   };
 
   const handleGenerateMappings = (formData: FormData) => {
-    setThoughtSteps([]);
+    setAgentThoughts([]);
     setMappingData([]);
+    setCurrentInvocationNumber(0); // Reset invocation counter
 
-    startWorkflowMutation.mutate(formData, {
-      onSuccess: (result) => {
-        if (result) {
-          addToSessionStorage("thread_id", result["thread_id"]);
-          setMappingData(result.output || []);
-        }
+    // Process streaming thought steps
+    const processThoughtStep = (thought: ThoughtStep) => {
+      if (thought) {
+        setAgentThoughts((prevAgents) => {
+          // Determine agent name - mapper thoughts go to "mapper", corrector thoughts go to current invocation
+          const agentName = thought.agent_name.toLowerCase().includes("mapper")
+            ? "mapper"
+            : "mapper"; // During initial generation, only mapper thoughts should come
+
+          // Check if this agent already exists
+          const existingAgentIndex = prevAgents.findIndex((a) => a.agent_name === agentName);
+
+          if (existingAgentIndex >= 0) {
+            // Add thought to existing agent
+            const updated = [...prevAgents];
+            updated[existingAgentIndex] = {
+              ...updated[existingAgentIndex],
+              thoughts: [...updated[existingAgentIndex].thoughts, thought],
+            };
+            return updated;
+          } else {
+            // Create new agent entry
+            return [...prevAgents, { agent_name: agentName, thoughts: [thought] }];
+          }
+        });
+      }
+    };
+
+    // Start the workflow with streaming support
+    startWorkflowMutation.mutate(
+      {
+        formData,
+        onThought: processThoughtStep,
       },
-    });
+      {
+        onSuccess: (result) => {
+          if (result) {
+            addToSessionStorage("thread_id", result.thread_id);
+            setMappingData(result.output || []);
+          }
+        },
+      }
+    );
   };
 
   const handleRerun = (feedback: string) => {
     toast.info("Re-running AI analysis...");
-    setThoughtSteps([]);
+    // Don't reset agentThoughts to preserve chain of thoughts from previous agents
     setMappingData([]);
+
+    // Increment invocation number for this new corrector run
+    const invocationNumber = currentInvocationNumber + 1;
+    setCurrentInvocationNumber(invocationNumber);
 
     const thread_id = getFromSessionStorage("thread_id");
 
@@ -122,12 +165,41 @@ const Dashboard = () => {
     };
 
     const headers = {
-      accept: "application/json",
       "Content-Type": "application/json",
     };
 
+    // Process streaming thought steps
+    const processThoughtStep = (thought: ThoughtStep) => {
+      if (thought) {
+        setAgentThoughts((prevAgents) => {
+          // Use the invocation number that was set when handleRerun was called
+          const agentName = `corrector-${invocationNumber}`;
+
+          // Check if this agent already exists
+          const existingAgentIndex = prevAgents.findIndex((a) => a.agent_name === agentName);
+
+          if (existingAgentIndex >= 0) {
+            // Add thought to existing agent
+            const updated = [...prevAgents];
+            updated[existingAgentIndex] = {
+              ...updated[existingAgentIndex],
+              thoughts: [...updated[existingAgentIndex].thoughts, thought],
+            };
+            return updated;
+          } else {
+            // Create new agent entry
+            return [...prevAgents, { agent_name: agentName, thoughts: [thought] }];
+          }
+        });
+      }
+    };
+
     resumeWorkflowMutation.mutate(
-      { payload, headers },
+      {
+        payload,
+        headers,
+        onThought: processThoughtStep,
+      },
       {
         onSuccess: (result) => {
           if (result) {
@@ -140,7 +212,7 @@ const Dashboard = () => {
 
   const handleConfGenerate = () => {
     toast.info("Generating final configuration...");
-    setThoughtSteps([]);
+    // Don't reset agentThoughts to preserve chain of thoughts from previous agents
     setMappingData([]);
 
     const thread_id = getFromSessionStorage("thread_id");
@@ -344,7 +416,7 @@ const Dashboard = () => {
             <Tabs
               value={activeTab}
               onChange={(_, newValue) => setActiveTab(newValue)}
-              variant={"fullWidth"}
+              variant="fullWidth"
               sx={{
                 borderBottom: 1,
                 borderColor: "divider",
@@ -353,46 +425,53 @@ const Dashboard = () => {
                   textTransform: "none",
                   fontSize: { xs: "0.85rem", md: "0.95rem" },
                   fontWeight: 600,
-                  px: { xs: 1, md: 2 },
+                  px: { xs: 2, md: 3 },
                 },
               }}
             >
               <Tab
-                icon={<Psychology sx={{ fontSize: { xs: 18, md: 24 } }} />}
-                iconPosition={isMobile ? "top" : "start"}
+                icon={<Psychology sx={{ fontSize: { xs: 24, md: 24 } }} />}
+                iconPosition={"start"}
                 label={
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      gap: { xs: 0.5, md: 1 },
-                      flexDirection: { xs: "column", sm: "row" },
+                      gap: 1,
                     }}
                   >
                     <Typography
                       variant="body2"
                       sx={{
-                        fontSize: { xs: "0.75rem", md: "0.875rem" },
+                        fontSize: { xs: "0.875rem", md: "0.875rem" },
                         textAlign: { xs: "center", sm: "left" },
                       }}
                     >
-                      {isMobile ? "Thoughts" : "Chain of Thoughts"}
+                      Thoughts
                     </Typography>
-                    {thoughtSteps.length > 0 && (
-                      <Chip
-                        label={`${thoughtSteps.length} steps`}
+                    {agentThoughts.length > 0 && (
+                      <IconButton
                         size="small"
-                        color="primary"
-                        variant="outlined"
-                        sx={{ fontSize: { xs: "0.65rem", md: "0.75rem" } }}
-                      />
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsThoughtsFullscreen(true);
+                        }}
+                        sx={{
+                          p: 0.5,
+                          "&:hover": {
+                            backgroundColor: "action.hover",
+                          },
+                        }}
+                      >
+                        <Fullscreen fontSize="small" color="primary" />
+                      </IconButton>
                     )}
                   </Box>
                 }
               />
               <Tab
-                icon={<AccountTree sx={{ fontSize: { xs: 18, md: 24 } }} />}
-                iconPosition={isMobile ? "top" : "start"}
+                icon={<AccountTree sx={{ fontSize: { xs: 24, md: 24 } }} />}
+                iconPosition={"start"}
                 label={
                   <Box
                     sx={{
@@ -404,11 +483,11 @@ const Dashboard = () => {
                     <Typography
                       variant="body2"
                       sx={{
-                        fontSize: { xs: "0.75rem", md: "0.875rem" },
+                        fontSize: { xs: "0.875rem", md: "0.875rem" },
                         textAlign: { xs: "center", sm: "left" },
                       }}
                     >
-                      {isMobile ? "Workflow" : "Workflow Graph"}
+                      Workflow Graph
                     </Typography>
                   </Box>
                 }
@@ -418,15 +497,23 @@ const Dashboard = () => {
             {/* Tab Content */}
             <Box
               sx={{
-                p: { xs: 1.5, md: 2 },
-                overflow: "auto",
+                p: { xs: 1.5, md: 1.5 },
+                overflow: "hidden",
                 flex: 1,
                 minHeight: { xs: 200, md: 245 },
+                maxHeight: { xs: "60vh", md: "none" },
               }}
             >
               {activeTab === 0 && (
                 <Suspense fallback={<LoadingFallback message="Loading chain of thoughts..." />}>
-                  <ChainOfThoughts steps={thoughtSteps} isProcessing={isProcessing} />
+                  <>
+                    <ChainOfThoughts
+                      agentThoughts={agentThoughts}
+                      isProcessing={isProcessing}
+                      isFullscreen={isThoughtsFullscreen}
+                      onFullscreenClose={() => setIsThoughtsFullscreen(false)}
+                    />
+                  </>
                 </Suspense>
               )}
               {activeTab === 1 && (

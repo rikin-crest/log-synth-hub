@@ -1,2 +1,11 @@
+# Run lint-staged
 npx lint-staged
-ggshield secret scan pre-commit
+
+# Check if ggshield is installed
+if command -v ggshield >/dev/null 2>&1; then
+    # Run ggshield with full path
+    $(which ggshield) secret scan pre-commit
+else
+    echo "Warning: ggshield is not installed. Skipping secret scanning."
+    echo "Install it with: pip install ggshield"
+fi

@@ -1,23 +1,24 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  startWorkflow,
-  resumeWorkflow,
-  generateConf,
-} from "@/api/workflow";
+import { startWorkflow, resumeWorkflow, generateConf } from "@/api/workflow";
 import {
   WorkflowResponse,
   ResumeWorkflowPayload,
   GenerateConfPayload,
+  ThoughtStep,
 } from "@/components/types";
 
 /**
  * Hook for starting a new workflow
  */
 export const useStartWorkflow = () => {
-  return useMutation<WorkflowResponse | null, Error, FormData>({
-    mutationFn: async (formData: FormData) => {
-      return await startWorkflow(formData);
+  return useMutation<
+    WorkflowResponse | null,
+    Error,
+    { formData: FormData; onThought?: (thought: ThoughtStep) => void }
+  >({
+    mutationFn: async ({ formData, onThought }) => {
+      return await startWorkflow(formData, onThought);
     },
     onError: (error) => {
       toast.error(error.message || "Failed to start workflow");
@@ -32,10 +33,14 @@ export const useResumeWorkflow = () => {
   return useMutation<
     WorkflowResponse | null,
     Error,
-    { payload: ResumeWorkflowPayload; headers: HeadersInit }
+    {
+      payload: ResumeWorkflowPayload;
+      headers: HeadersInit;
+      onThought?: (thought: ThoughtStep) => void;
+    }
   >({
-    mutationFn: async ({ payload, headers }) => {
-      return await resumeWorkflow(payload, headers);
+    mutationFn: async ({ payload, headers, onThought }) => {
+      return await resumeWorkflow(payload, headers, onThought);
     },
     onError: (error) => {
       toast.error(error.message || "Failed to resume workflow");
@@ -47,11 +52,7 @@ export const useResumeWorkflow = () => {
  * Hook for generating configuration file
  */
 export const useGenerateConf = () => {
-  return useMutation<
-    void,
-    Error,
-    { payload: GenerateConfPayload; headers: HeadersInit }
-  >({
+  return useMutation<void, Error, { payload: GenerateConfPayload; headers: HeadersInit }>({
     mutationFn: async ({ payload, headers }) => {
       await generateConf(payload, headers);
     },
