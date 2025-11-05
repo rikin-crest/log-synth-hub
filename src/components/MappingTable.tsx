@@ -287,17 +287,28 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
               "& .MuiDataGrid-columnHeaders": {
                 fontWeight: 600,
                 fontSize: { xs: "0.75rem", md: "0.875rem" },
+                borderColor: "divider",
               },
               "& .MuiDataGrid-cell": {
                 fontSize: { xs: "0.75rem", md: "0.875rem" },
                 padding: { xs: "4px 8px", md: "8px 16px" },
-                borderColor: "divider",
+                borderRight: "1px solid",
+                borderColor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.12)"
+                    : "rgba(0, 0, 0, 0.12)",
                 display: "flex",
                 alignItems: "center",
+                "&:last-child": {
+                  borderRight: "none",
+                },
               },
               "& .MuiDataGrid-columnHeader": {
-                borderRight: 1,
-                borderColor: "divider",
+                borderRight: "1px solid",
+                borderColor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.12)"
+                    : "rgba(0, 0, 0, 0.12)",
                 "&:last-child": {
                   borderRight: "none",
                 },

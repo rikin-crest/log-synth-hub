@@ -33,10 +33,14 @@ export const useResumeWorkflow = () => {
   return useMutation<
     WorkflowResponse | null,
     Error,
-    { payload: ResumeWorkflowPayload; headers: HeadersInit }
+    {
+      payload: ResumeWorkflowPayload;
+      headers: HeadersInit;
+      onThought?: (thought: ThoughtStep) => void;
+    }
   >({
-    mutationFn: async ({ payload, headers }) => {
-      return await resumeWorkflow(payload, headers);
+    mutationFn: async ({ payload, headers, onThought }) => {
+      return await resumeWorkflow(payload, headers, onThought);
     },
     onError: (error) => {
       toast.error(error.message || "Failed to resume workflow");

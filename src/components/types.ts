@@ -5,10 +5,15 @@ export type ToolCall = {
 };
 
 export type ThoughtStep = {
-  node_name: string;
-  message_type: "AIMessageChunk" | "ToolMessageChunk";
+  agent_name: string;
+  message_type: "AIMessage" | "ToolMessage";
   content: string;
-  tool_calls: ToolCall[];
+  tool_calls: ToolCall[] | ToolCall;
+};
+
+export type AgentThoughts = {
+  agent_name: string;
+  thoughts: ThoughtStep[];
 };
 
 export type ResumeWorkflowPayload = {
