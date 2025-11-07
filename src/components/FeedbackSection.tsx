@@ -155,7 +155,30 @@ const FeedbackSection = ({ onRerun, onConfGenerate, disabled }: FeedbackSectionP
               },
             }}
           >
-            Generate Conf
+            Mapping Document
+          </Button>
+          <Button
+            variant="contained"
+            size="medium"
+            startIcon={<CheckCircle />}
+            onClick={handleConfGenerate}
+            disabled={disabled}
+            sx={{
+              fontWeight: 600,
+              "&:disabled": {
+                cursor: "no-drop",
+                pointerEvents: "auto",
+                color: "#9ca3af !important",
+              },
+              background: "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
+              "&:hover": {
+                background: disabled
+                  ? "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))"
+                  : "linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))",
+              },
+            }}
+          >
+            Generate Configuration
           </Button>
         </Box>
       </CardContent>

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import {
   TextField,
   Button,
@@ -20,6 +20,11 @@ interface ProductOption {
   value: string;
 }
 
+interface MappingSchemaOptions {
+  label: string;
+  value: string;
+}
+
 interface InputSectionProps {
   onSubmit: (data: unknown) => void;
   isProcessing: boolean;
@@ -35,6 +40,11 @@ const productOptions: ProductOption[] = [
   { label: "PAN Firewall", value: "pan_firewall" },
   { label: "Cisco Duo", value: "cisco_duo" },
   { label: "GCP Cloud NAT", value: "gcp_cloud_nat" },
+];
+
+const mappingSchemaOptions: MappingSchemaOptions[] = [
+  { label: "UDM", value: "udm" },
+  { label: "OCSF", value: "ocsf" },
 ];
 
 // Product to log category mapping
@@ -57,6 +67,7 @@ const productLogCategories: Record<string, string[]> = {
 
 const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
   const [productName, setProductName] = useState("");
+  const [mappingSchema, setMappingSchema] = useState("");
   const [logCategory, setLogCategory] = useState("");
   const [logType, setLogType] = useState("");
   const [fileName, setFileName] = useState("");
@@ -101,9 +112,15 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
     setLogCategory("");
   };
 
+  const handleMappingSchemaChange = (value: string | null) => {
+    setMappingSchema(value ?? "");
+  };
+
   const handleLogTypeChange = (value: string) => {
     setLogType(value);
   };
+
+  const isLogFormatDisabled = useMemo(() => mappingSchema === "ocsf", [mappingSchema]);
 
   const handleSubmit = async () => {
     if (!productName || !logType) {
@@ -113,6 +130,7 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
 
     const formData = new FormData();
     formData.append("product_name", productName);
+    formData.append("mapping_schema", mappingSchema);
     formData.append("product_log_name", logCategory);
     formData.append("raw_log_type", logType);
     formData.append("raw_logs_path", file);
@@ -206,48 +224,74 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
           )}
         />
 
-        <FormControl fullWidth size="small" required>
-          <InputLabel>Log Format</InputLabel>
-          <Select
-            value={logType}
-            onChange={(e) => handleLogTypeChange(e.target.value)}
-            label="Log Format"
-            displayEmpty
-            startAdornment={
-              <InputAdornment position="start" sx={{ mr: 0, ml: -1 }}>
-                <Tooltip
-                  title="Select the format of your log data (JSON, Key-Value pairs, or XML)"
-                  arrow
-                  placement="top"
-                >
-                  <IconButton size="small" edge="start">
-                    <InfoOutlined fontSize="inherit" />
-                  </IconButton>
-                </Tooltip>
-              </InputAdornment>
-            }
-            renderValue={(selected) => {
-              if (!selected) {
-                return <span style={{ color: "#9ca3af" }}>Select format</span>;
-              }
-              const formats: Record<string, string> = {
-                json: "JSON",
-                kv: "Key-Value (KV)",
-                xml: "XML",
-              };
-              return formats[selected];
-            }}
-            sx={{
-              "& .MuiSelect-root": {
-                pl: 0,
+        <Autocomplete
+          size="small"
+          fullWidth
+          options={mappingSchemaOptions}
+          value={mappingSchemaOptions.find((option) => option.value === mappingSchema) || null}
+          onChange={(_, newValue) => handleMappingSchemaChange(newValue?.value)}
+          isOptionEqualToValue={(option, value) => option.value === value.value}
+          getOptionLabel={(option) => option.label}
+          disablePortal={false}
+          ListboxProps={{
+            style: {
+              maxHeight: 200,
+              overflow: "auto",
+              wordBreak: "break-word",
+              whiteSpace: "normal",
+            },
+          }}
+          slotProps={{
+            paper: {
+              style: {
+                maxHeight: 200,
+                overflow: "auto",
+                zIndex: 1400,
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+                minWidth: "250px",
               },
-            }}
-          >
-            <MenuItem value="json">JSON</MenuItem>
-            <MenuItem value="kv">Key-Value (KV)</MenuItem>
-            <MenuItem value="xml">XML</MenuItem>
-          </Select>
-        </FormControl>
+            },
+          }}
+          componentsProps={{
+            popper: {
+              style: {
+                zIndex: 1400,
+              },
+              disablePortal: false,
+              placement: "bottom-start",
+            },
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Target Mapping Schema"
+              placeholder="Select product"
+              required
+              InputProps={{
+                ...params.InputProps,
+                startAdornment: (
+                  <InputAdornment position="start" sx={{ mr: -1, ml: 0 }}>
+                    <Tooltip
+                      title="Select the security product or service that generated the logs"
+                      arrow
+                      placement="top"
+                    >
+                      <IconButton size="small" edge="start">
+                        <InfoOutlined fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                "& .MuiInputBase-input": {
+                  pl: 1,
+                },
+              }}
+            />
+          )}
+        />
 
         <Autocomplete
           size="small"
@@ -341,6 +385,62 @@ const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
             />
           )}
         />
+
+        <FormControl fullWidth size="small" required>
+          <InputLabel>Log Format</InputLabel>
+          <Select
+            value={logType}
+            onChange={(e) => handleLogTypeChange(e.target.value)}
+            label="Log Format"
+            displayEmpty
+            disabled={isLogFormatDisabled}
+            startAdornment={
+              <InputAdornment position="start" sx={{ mr: 0, ml: -1 }}>
+                <Tooltip
+                  title="Select the format of your log data (JSON, Key-Value pairs, or XML)"
+                  arrow
+                  placement="top"
+                >
+                  <IconButton size="small" edge="start">
+                    <InfoOutlined fontSize="inherit" />
+                  </IconButton>
+                </Tooltip>
+              </InputAdornment>
+            }
+            renderValue={(selected) => {
+              if (!selected) {
+                return <span style={{ color: "#9ca3af" }}>Select format</span>;
+              }
+              const formats: Record<string, string> = {
+                json: "JSON",
+                kv: "Key-Value (KV)",
+                xml: "XML",
+              };
+              return formats[selected];
+            }}
+            sx={{
+              "& .MuiSelect-root": {
+                pl: 0,
+              },
+              "&.Mui-disabled": {
+                cursor: "not-allowed", // 🚫 cursor on the root
+              },
+              "&.Mui-disabled .MuiSelect-select": {
+                cursor: "not-allowed !important", // 🚫 cursor on the inner text area
+              },
+              "&.Mui-disabled .MuiOutlinedInput-notchedOutline": {
+                cursor: "not-allowed !important",
+              },
+              "&.Mui-disabled .MuiSelect-icon": {
+                cursor: "not-allowed !important", // 🚫 cursor on dropdown arrow
+              },
+            }}
+          >
+            <MenuItem value="json">JSON</MenuItem>
+            <MenuItem value="kv">Key-Value (KV)</MenuItem>
+            <MenuItem value="xml">XML</MenuItem>
+          </Select>
+        </FormControl>
 
         <Box sx={{ position: "relative", height: "100%" }}>
           <Button

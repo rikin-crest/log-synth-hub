@@ -48,10 +48,11 @@ const WorkflowGraph = () => {
           sx={{
             display: "flex",
             justifyContent: "center",
-            alignItems: "center",
+            alignItems: "flex-start",
             width: "100%",
             height: "100%",
-            overflow: "hidden",
+            overflowY: "auto",
+            overflowX: "hidden",
             position: "relative",
           }}
         >
@@ -70,8 +71,6 @@ const WorkflowGraph = () => {
               alt="Workflow Graph"
               style={{
                 maxWidth: "100%",
-                maxHeight: "100%",
-                objectFit: "contain",
                 borderRadius: "8px",
                 boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
               }}
