@@ -1,11 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { startWorkflow, resumeWorkflow, generateConf } from "@/api/workflow";
+import { startWorkflow, resumeWorkflow, generateConf, getMappingDoc } from "@/api/workflow";
 import {
   WorkflowResponse,
   ResumeWorkflowPayload,
   GenerateConfPayload,
   ThoughtStep,
+  MappingDocResponse,
+  MappingDocPayload,
 } from "@/components/types";
 
 /**
@@ -61,6 +63,23 @@ export const useGenerateConf = () => {
     },
     onError: (error) => {
       toast.error(error.message || "Failed to generate configuration file");
+    },
+  });
+};
+
+// Hook for fetching mapping documentation
+
+export const useGetMappingDoc = () => {
+  return useMutation<
+    string | null,
+    Error,
+    {
+      payload: MappingDocPayload;
+      headers: HeadersInit;
+    }
+  >({
+    mutationFn: async ({ payload, headers }) => {
+      return await getMappingDoc(payload, headers);
     },
   });
 };

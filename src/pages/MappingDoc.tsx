@@ -1,16 +1,20 @@
-import { Box } from "@mui/material";
-import "../styles/markdown_light.css";
+import { Box, Button, Typography, Divider } from "@mui/material";
+import "../styles/markdown_dark.css";
+
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import ReactMarkdown from "react-markdown";
-import markdown from "../data/output.md?raw";
 import NavigationBar from "@/components/NavigationBar";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useReactToPrint } from "react-to-print";
+import { getFromSessionStorage } from "@/lib/session";
+import { useGetMappingDoc } from "../hooks/use-workflow";
 
 const MappingDoc = () => {
   const printRef = useRef<HTMLDivElement>(null);
+  const getMappingDocMutation = useGetMappingDoc();
+  const [markdownContent, setMarkdownContent] = useState("");
 
   const handleDownloadPrint = useReactToPrint({
     contentRef: printRef,
@@ -46,27 +50,85 @@ const MappingDoc = () => {
     `,
   });
 
+  useEffect(() => {
+    const handleGetMappingDoc = () => {
+      // const thread_id = getFromSessionStorage("thread_id");
+      const thread_id = "514a73a9-6320-4f7c-931b-334ccf64d133";
+
+      const payload = {
+        thread_id,
+      };
+
+      const headers = {
+        accept: "application/json",
+        "Content-Type": "application/json",
+      };
+
+      getMappingDocMutation.mutate(
+        { payload, headers },
+        {
+          onSuccess: (data) => {
+            if (data) setMarkdownContent(data);
+          },
+        }
+      );
+    };
+
+    handleGetMappingDoc();
+  }, []);
+
   return (
     <>
       <NavigationBar />
       <Box
-        component="div"
-        className="markdown-body"
         sx={{
-          height: "90vh",
+          height: "95vh",
           maxHeight: "100vh",
           overflowY: "auto",
           p: 3,
           mb: 5,
         }}
       >
-        <button type="button" onClick={handleDownloadPrint}>
-          Download as PDF
-        </button>
-        <div ref={printRef}>
-          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeHighlight]}>
-            {markdown}
-          </ReactMarkdown>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            py: 2,
+          }}
+        >
+          <Typography variant="h3" sx={{ color: "#7c64e8ff" }}>
+            Mapping Document
+          </Typography>
+          <Button
+            variant="contained"
+            size="medium"
+            onClick={handleDownloadPrint}
+            sx={{
+              fontWeight: 600,
+              "&:disabled": {
+                cursor: "no-drop",
+                pointerEvents: "auto",
+                color: "#9ca3af !important",
+              },
+              background: "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
+              "&:hover": {
+                background: true
+                  ? "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))"
+                  : "linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))",
+              },
+            }}
+          >
+            Download PDF
+          </Button>
+        </Box>
+        <Divider sx={{ mb: 2 }} />
+        <div ref={printRef} className="markdown-body">
+          <Box sx={{ mx: 5 }}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeHighlight]}>
+              {markdownContent}
+            </ReactMarkdown>
+          </Box>
         </div>
       </Box>
     </>

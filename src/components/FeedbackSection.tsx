@@ -15,16 +15,22 @@ import { Feedback, Refresh, CheckCircle, InfoOutlined } from "@mui/icons-materia
 interface FeedbackSectionProps {
   onRerun: (feedback: string) => void;
   onConfGenerate: () => void;
+  onGetMappingDoc: () => void;
   disabled: boolean;
 }
 
 const FeedbackSection = ({ onRerun, onConfGenerate, disabled }: FeedbackSectionProps) => {
   const [feedback, setFeedback] = useState("");
+
   const theme = useTheme();
 
   const handleConfGenerate = () => {
     onConfGenerate();
     setFeedback("");
+  };
+
+  const openMappingDocTab = () => {
+    window.open("/mappingDoc", "_blank");
   };
 
   return (
@@ -138,8 +144,8 @@ const FeedbackSection = ({ onRerun, onConfGenerate, disabled }: FeedbackSectionP
             variant="contained"
             size="medium"
             startIcon={<CheckCircle />}
-            onClick={handleConfGenerate}
-            disabled={disabled}
+            onClick={openMappingDocTab}
+            // disabled={disabled}
             sx={{
               fontWeight: 600,
               "&:disabled": {

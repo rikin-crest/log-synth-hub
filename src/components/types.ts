@@ -30,3 +30,9 @@ export type WorkflowResponse = {
   output: Record<string, string>[];
   message?: string;
 };
+
+export type MappingDocPayload = {
+  thread_id: string;
+};
+
+export type MappingDocResponse = string;

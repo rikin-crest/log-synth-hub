@@ -1,5 +1,7 @@
 import {
   GenerateConfPayload,
+  MappingDocPayload,
+  MappingDocResponse,
   ResumeWorkflowPayload,
   ThoughtStep,
   WorkflowResponse,
@@ -357,5 +359,31 @@ export const generateConf = async (
     const errorMessage =
       (e as { message: string })?.message || "Failed to download configuration file!";
     toast.error(errorMessage);
+  }
+};
+
+export const getMappingDoc = async (
+  payload: MappingDocPayload,
+  headers: HeadersInit
+): Promise<string | null> => {
+  try {
+    const response = await fetch(
+      `${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.GET_MAPPING_DOC}?thread_id=${payload.thread_id}`,
+      {
+        method: "GET",
+        headers: {
+          ...getAuthHeader(),
+          ...headers,
+          Accept: "application/json",
+        },
+      }
+    );
+
+    const markdownData = await response.text();
+    return markdownData;
+  } catch (e: unknown) {
+    const errorMessage = (e as { message: string })?.message || "Failed to get mapping document!";
+    toast.error(errorMessage);
+    return null;
   }
 };

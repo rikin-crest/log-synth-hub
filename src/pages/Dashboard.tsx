@@ -33,6 +33,7 @@ const Dashboard = () => {
   const startWorkflowMutation = useStartWorkflow();
   const resumeWorkflowMutation = useResumeWorkflow();
   const generateConfMutation = useGenerateConf();
+  // const getMappingDocMutation = useGetMappingDoc();
 
   // Compute loading state from mutations
   const isProcessing = startWorkflowMutation.isPending || resumeWorkflowMutation.isPending;
@@ -167,6 +168,22 @@ const Dashboard = () => {
 
     generateConfMutation.mutate({ payload, headers });
   };
+
+  // const handleGetMappingDoc = () => {
+  //   // const thread_id = getFromSessionStorage("thread_id");
+  //   const thread_id = "514a73a9-6320-4f7c-931b-334ccf64d133";
+
+  //   const payload = {
+  //     thread_id,
+  //   };
+
+  //   const headers = {
+  //     accept: "application/json",
+  //     "Content-Type": "application/json",
+  //   };
+
+  //   getMappingDocMutation.mutate({ payload, headers });
+  // };
 
   return (
     <Box
