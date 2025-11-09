@@ -11,21 +11,22 @@ import {
   useTheme,
 } from "@mui/material";
 import { Feedback, Refresh, CheckCircle, InfoOutlined } from "@mui/icons-material";
+import { useDrawer } from "@/contexts/DrawerContext";
 
 interface FeedbackSectionProps {
   onRerun: (feedback: string) => void;
   onConfGenerate: () => void;
-  onGetMappingDoc: () => void;
   disabled: boolean;
 }
 
 const FeedbackSection = ({ onRerun, onConfGenerate, disabled }: FeedbackSectionProps) => {
   const [feedback, setFeedback] = useState("");
-
+  const { toggleDrawer } = useDrawer();
   const theme = useTheme();
 
-  const handleConfGenerate = () => {
-    onConfGenerate();
+  const handleConfGenerate = async () => {
+    await onConfGenerate();
+    toggleDrawer(true);
     setFeedback("");
   };
 
@@ -145,7 +146,7 @@ const FeedbackSection = ({ onRerun, onConfGenerate, disabled }: FeedbackSectionP
             size="medium"
             startIcon={<CheckCircle />}
             onClick={openMappingDocTab}
-            // disabled={disabled}
+            disabled={disabled}
             sx={{
               fontWeight: 600,
               "&:disabled": {

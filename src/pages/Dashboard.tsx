@@ -1,10 +1,12 @@
 import { useState, lazy, Suspense } from "react";
 import { Box, Typography, IconButton, Tabs, Tab } from "@mui/material";
-import { Settings, Psychology, AccountTree, Fullscreen, Newspaper } from "@mui/icons-material";
+import { Settings, Psychology, AccountTree, Fullscreen } from "@mui/icons-material";
 import { toast } from "sonner";
 import { useStartWorkflow, useResumeWorkflow, useGenerateConf } from "../hooks/use-workflow";
 import InputSection from "../components/InputSection";
 import { ThoughtStep, AgentThoughts } from "../components/types";
+
+import { DrawerProvider } from "@/contexts/DrawerContext";
 
 // Import Navigation bar
 import NavigationBar from "@/components/NavigationBar";
@@ -28,15 +30,20 @@ const Dashboard = () => {
   const [mappingData, setMappingData] = useState<Record<string, unknown>[]>([]);
   const [activeTab, setActiveTab] = useState(0);
   const [isThoughtsFullscreen, setIsThoughtsFullscreen] = useState(false);
+  const [releaseNote, setReleaseNote] = useState("");
+
+  // Passing mapping schema to handle state of buttons
+  const [mappingSchema, setMappingSchema] = useState("");
 
   // TanStack Query hooks
   const startWorkflowMutation = useStartWorkflow();
   const resumeWorkflowMutation = useResumeWorkflow();
   const generateConfMutation = useGenerateConf();
-  // const getMappingDocMutation = useGetMappingDoc();
 
   // Compute loading state from mutations
   const isProcessing = startWorkflowMutation.isPending || resumeWorkflowMutation.isPending;
+
+  // Toggle release notes drawer
 
   const handleGenerateMappings = (formData: FormData) => {
     setAgentThoughts([]);
@@ -150,13 +157,12 @@ const Dashboard = () => {
     );
   };
 
-  const handleConfGenerate = () => {
+  const handleConfGenerate = async () => {
     toast.info("Generating final configuration...");
     // Don't reset agentThoughts to preserve chain of thoughts from previous agents
     setMappingData([]);
 
     const thread_id = getFromSessionStorage("thread_id");
-
     const payload = {
       thread_id,
     };
@@ -166,24 +172,15 @@ const Dashboard = () => {
       "Content-Type": "application/json",
     };
 
-    generateConfMutation.mutate({ payload, headers });
+    await generateConfMutation.mutateAsync(
+      { payload, headers },
+      {
+        onSuccess: (data) => {
+          if (data) setReleaseNote(data);
+        },
+      }
+    );
   };
-
-  // const handleGetMappingDoc = () => {
-  //   // const thread_id = getFromSessionStorage("thread_id");
-  //   const thread_id = "514a73a9-6320-4f7c-931b-334ccf64d133";
-
-  //   const payload = {
-  //     thread_id,
-  //   };
-
-  //   const headers = {
-  //     accept: "application/json",
-  //     "Content-Type": "application/json",
-  //   };
-
-  //   getMappingDocMutation.mutate({ payload, headers });
-  // };
 
   return (
     <Box
@@ -247,7 +244,12 @@ const Dashboard = () => {
                 Input Configuration
               </Typography>
             </Box>
-            <InputSection onSubmit={handleGenerateMappings} isProcessing={isProcessing} />
+            <InputSection
+              onSubmit={handleGenerateMappings}
+              isProcessing={isProcessing}
+              mappingSchema={mappingSchema}
+              setMappingSchema={setMappingSchema}
+            />
           </Box>
 
           {/* Analysis Section with Tabs */}
@@ -343,29 +345,6 @@ const Dashboard = () => {
                   </Box>
                 }
               />
-              <Tab
-                icon={<Newspaper sx={{ fontSize: { xs: 24, md: 24 } }} />}
-                iconPosition={"start"}
-                label={
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: { xs: 0.5, md: 1 },
-                    }}
-                  >
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontSize: { xs: "0.875rem", md: "0.875rem" },
-                        textAlign: { xs: "center", sm: "left" },
-                      }}
-                    >
-                      Release Notes
-                    </Typography>
-                  </Box>
-                }
-              />
             </Tabs>
 
             {/* Tab Content */}
@@ -393,11 +372,6 @@ const Dashboard = () => {
               {activeTab === 1 && (
                 <Suspense fallback={<LoadingFallback message="Loading workflow graph..." />}>
                   <WorkflowGraph />
-                </Suspense>
-              )}
-              {activeTab === 2 && (
-                <Suspense fallback={<LoadingFallback message="Loading Release Notes..." />}>
-                  <ReleaseNotesDrawer />
                 </Suspense>
               )}
             </Box>
@@ -456,11 +430,14 @@ const Dashboard = () => {
                 <LoadingFallback message="Loading feedback section..." size={28} height="100%" />
               }
             >
-              <FeedbackSection
-                onRerun={handleRerun}
-                onConfGenerate={handleConfGenerate}
-                disabled={mappingData.length === 0}
-              />
+              <DrawerProvider>
+                <FeedbackSection
+                  onRerun={handleRerun}
+                  onConfGenerate={handleConfGenerate}
+                  disabled={mappingData.length === 0 || mappingSchema === "ocsf"}
+                />
+                <ReleaseNotesDrawer note={releaseNote} />
+              </DrawerProvider>
             </Suspense>
           </Box>
         </Box>

@@ -6,7 +6,6 @@ import {
   ResumeWorkflowPayload,
   GenerateConfPayload,
   ThoughtStep,
-  MappingDocResponse,
   MappingDocPayload,
 } from "@/components/types";
 
@@ -54,9 +53,9 @@ export const useResumeWorkflow = () => {
  * Hook for generating configuration file
  */
 export const useGenerateConf = () => {
-  return useMutation<void, Error, { payload: GenerateConfPayload; headers: HeadersInit }>({
+  return useMutation<string | void, Error, { payload: GenerateConfPayload; headers: HeadersInit }>({
     mutationFn: async ({ payload, headers }) => {
-      await generateConf(payload, headers);
+      return await generateConf(payload, headers);
     },
     onSuccess: () => {
       toast.success("Configuration file downloaded successfully");

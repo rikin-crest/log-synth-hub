@@ -1,7 +1,6 @@
 import {
   GenerateConfPayload,
   MappingDocPayload,
-  MappingDocResponse,
   ResumeWorkflowPayload,
   ThoughtStep,
   WorkflowResponse,
@@ -312,7 +311,7 @@ export const resumeWorkflow = async (
 export const generateConf = async (
   payload: GenerateConfPayload,
   headers: HeadersInit
-): Promise<void> => {
+): Promise<string | void> => {
   try {
     const response = await fetch(
       `${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.GENERATE_CONF}?thread_id=${payload.thread_id}`,
@@ -332,9 +331,21 @@ export const generateConf = async (
       }
       throw new Error("Failed to generate configuration file!");
     }
+    const result = await response.json();
+    // const confContent = result.get("conf_content");
 
-    // Convert response to Blob
-    const blob = await response.blob();
+    const encodedData = result?.conf_content;
+
+    if (!encodedData) {
+      throw new Error("Conf content not found");
+    }
+
+    const binaryString = await atob(encodedData);
+    const bytes = await Uint8Array.from(binaryString, (m) => m.codePointAt(0));
+    const decodedString = new TextDecoder("utf-8").decode(bytes);
+
+    // Convert decoded text into Blob
+    const blob = await new Blob([decodedString], { type: "text/plain" });
 
     // Create a temporary URL
     const url = window.URL.createObjectURL(blob);
@@ -355,6 +366,9 @@ export const generateConf = async (
     // Cleanup
     a.remove();
     window.URL.revokeObjectURL(url);
+
+    const releaseNote = result?.release_notes;
+    return releaseNote;
   } catch (e: unknown) {
     const errorMessage =
       (e as { message: string })?.message || "Failed to download configuration file!";

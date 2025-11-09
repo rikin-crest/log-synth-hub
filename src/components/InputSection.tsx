@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import {
   TextField,
   Button,
@@ -28,6 +28,8 @@ interface MappingSchemaOptions {
 interface InputSectionProps {
   onSubmit: (data: unknown) => void;
   isProcessing: boolean;
+  mappingSchema: string;
+  setMappingSchema: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const productOptions: ProductOption[] = [
@@ -65,9 +67,14 @@ const productLogCategories: Record<string, string[]> = {
   gcp_cloud_nat: [],
 };
 
-const InputSection = ({ onSubmit, isProcessing }: InputSectionProps) => {
+const InputSection = ({
+  onSubmit,
+  isProcessing,
+  mappingSchema,
+  setMappingSchema,
+}: InputSectionProps) => {
   const [productName, setProductName] = useState("");
-  const [mappingSchema, setMappingSchema] = useState("");
+  // const [mappingSchema, setMappingSchema] = useState("");
   const [logCategory, setLogCategory] = useState("");
   const [logType, setLogType] = useState("");
   const [fileName, setFileName] = useState("");

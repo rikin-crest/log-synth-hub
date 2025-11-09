@@ -52,8 +52,7 @@ const MappingDoc = () => {
 
   useEffect(() => {
     const handleGetMappingDoc = () => {
-      // const thread_id = getFromSessionStorage("thread_id");
-      const thread_id = "514a73a9-6320-4f7c-931b-334ccf64d133";
+      const thread_id = getFromSessionStorage("thread_id");
 
       const payload = {
         thread_id,
