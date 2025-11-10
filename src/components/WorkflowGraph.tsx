@@ -106,18 +106,26 @@ const WorkflowGraph = () => {
         sx={{
           "& .MuiDialog-paper": {
             backgroundColor: "rgba(0, 0, 0, 0.9)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "flex-start",
           },
         }}
       >
         <Box
           sx={{
-            position: "relative",
-            width: "100%",
-            height: "100%",
+            width: "80vw",
+            maxWidth: "80vw",
+            height: "100vh",
             display: "flex",
-            justifyContent: "center",
+            flexDirection: "column",
             alignItems: "center",
-            padding: 2,
+            justifyContent: "flex-start",
+            position: "relative",
+            margin: "0 auto",
+            padding: 0,
+            backgroundColor: "rgba(0,0,0,0.9)",
+            overflow: "auto",
           }}
         >
           <IconButton
@@ -126,10 +134,10 @@ const WorkflowGraph = () => {
               position: "absolute",
               top: 16,
               right: 16,
-              backgroundColor: "rgba(255, 255, 255, 0.1)",
+              backgroundColor: "rgba(119, 79, 202, 1)",
               color: "white",
               "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                backgroundColor: "rgba(119, 79, 202, 0.6)",
               },
               zIndex: 1,
             }}
@@ -140,9 +148,10 @@ const WorkflowGraph = () => {
             src={imageUrl}
             alt="Workflow Graph - Fullscreen"
             style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
+              width: "100%",
+              height: "auto",
               objectFit: "contain",
+              display: "block",
             }}
           />
         </Box>
