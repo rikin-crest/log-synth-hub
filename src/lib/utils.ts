@@ -10,6 +10,8 @@ export const getColumns = (data: any) => {
 
     if (key.includes("UDM Field Name")) {
       displayName = "UDM Field";
+    } else if (key.includes("OCSF Field Name")) {
+      displayName = "OCSF Field";
     } else if (key.includes("RawLog Field Name")) {
       displayName = "Product Field";
     }

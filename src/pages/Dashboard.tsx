@@ -31,6 +31,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [isThoughtsFullscreen, setIsThoughtsFullscreen] = useState(false);
   const [releaseNote, setReleaseNote] = useState("");
+  const [disableMappingDoc, setDisableMappingDoc] = useState(true);
 
   // Passing mapping schema to handle state of buttons
   const [mappingSchema, setMappingSchema] = useState("");
@@ -176,6 +177,7 @@ const Dashboard = () => {
       { payload, headers },
       {
         onSuccess: (data) => {
+          setDisableMappingDoc(false);
           if (data) setReleaseNote(data);
         },
       }
@@ -434,7 +436,8 @@ const Dashboard = () => {
                 <FeedbackSection
                   onRerun={handleRerun}
                   onConfGenerate={handleConfGenerate}
-                  disabled={mappingData.length === 0 || mappingSchema === "ocsf"}
+                  disabled={mappingData.length === 0 || mappingSchema === "OCSF"}
+                  disableMappingDoc={disableMappingDoc}
                 />
                 <ReleaseNotesDrawer note={releaseNote} />
               </DrawerProvider>

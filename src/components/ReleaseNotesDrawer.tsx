@@ -6,7 +6,7 @@ import { useDrawer } from "@/contexts/DrawerContext";
 
 const ReleaseNotesDrawer = ({ note }: { note: string }) => {
   const { open, toggleDrawer } = useDrawer();
-  
+
   return (
     <div>
       <Drawer
@@ -45,10 +45,7 @@ const ReleaseNotesDrawer = ({ note }: { note: string }) => {
               <Close />
             </IconButton>
             <Typography variant="h2" fontWeight="700" sx={{ mb: 1 }}>
-              Release Note
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              Latest updates and improvements
+              Release Notes
             </Typography>
           </Box>
           <Box sx={{ flex: 1, overflowY: "auto", p: 3 }}>

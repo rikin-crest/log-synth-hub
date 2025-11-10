@@ -46,7 +46,7 @@ const productOptions: ProductOption[] = [
 
 const mappingSchemaOptions: MappingSchemaOptions[] = [
   { label: "UDM", value: "udm" },
-  { label: "OCSF", value: "ocsf" },
+  { label: "OCSF", value: "OCSF" },
 ];
 
 // Product to log category mapping
@@ -74,7 +74,6 @@ const InputSection = ({
   setMappingSchema,
 }: InputSectionProps) => {
   const [productName, setProductName] = useState("");
-  // const [mappingSchema, setMappingSchema] = useState("");
   const [logCategory, setLogCategory] = useState("");
   const [logType, setLogType] = useState("");
   const [fileName, setFileName] = useState("");
@@ -130,18 +129,17 @@ const InputSection = ({
   const isLogFormatDisabled = useMemo(() => mappingSchema === "ocsf", [mappingSchema]);
 
   const handleSubmit = async () => {
-    if (!productName || !logType) {
+    if (!productName) {
       toast.error("Please fill all the required fields!");
       return;
     }
 
     const formData = new FormData();
     formData.append("product_name", productName);
-    formData.append("mapping_schema", mappingSchema);
+    formData.append("target_schema_name", mappingSchema);
     formData.append("product_log_name", logCategory);
     formData.append("raw_log_type", logType);
     formData.append("raw_logs_path", file);
-
     onSubmit(formData);
   };
 
@@ -393,7 +391,7 @@ const InputSection = ({
           )}
         />
 
-        <FormControl fullWidth size="small" required>
+        <FormControl fullWidth size="small">
           <InputLabel>Log Format</InputLabel>
           <Select
             value={logType}
@@ -448,68 +446,67 @@ const InputSection = ({
             <MenuItem value="xml">XML</MenuItem>
           </Select>
         </FormControl>
-
-        <Box sx={{ position: "relative", height: "100%" }}>
+      </Box>
+      <Box>
+        <Button
+          variant="outlined"
+          component="label"
+          fullWidth
+          startIcon={
+            <Tooltip
+              title="Upload a sample log file in JSON, XML, or text format"
+              arrow
+              placement="top"
+            >
+              <InfoOutlined fontSize="inherit" />
+            </Tooltip>
+          }
+          sx={{
+            p: 0,
+            height: { xs: "40px", sm: "100%" },
+            minHeight: "40px",
+            borderStyle: "dashed",
+            borderWidth: 2,
+            fontSize: 14,
+            wordBreak: "break-word",
+            "&:hover": { borderStyle: "dashed", borderWidth: 2 },
+          }}
+        >
+          {fileName || "Upload Log File"}
+          <input
+            ref={fileInputRef}
+            type="file"
+            hidden
+            onChange={handleFileChange}
+            accept=".json,.xml,.log,.txt"
+          />
+        </Button>
+        {fileName && (
           <Button
             variant="outlined"
-            component="label"
-            fullWidth
-            startIcon={
-              <Tooltip
-                title="Upload a sample log file in JSON, XML, or text format"
-                arrow
-                placement="top"
-              >
-                <InfoOutlined fontSize="inherit" />
-              </Tooltip>
-            }
+            size="small"
+            onClick={handleRemoveFile}
             sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              minWidth: "auto",
+              width: 28,
+              height: 28,
               p: 0,
-              height: { xs: "40px", sm: "100%" },
-              minHeight: "40px",
-              borderStyle: "dashed",
-              borderWidth: 2,
-              fontSize: 14,
-              wordBreak: "break-word",
-              "&:hover": { borderStyle: "dashed", borderWidth: 2 },
+              border: "none",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              "&:hover": {
+                boxShadow: "none",
+              },
             }}
           >
-            {fileName || "Upload Log File"}
-            <input
-              ref={fileInputRef}
-              type="file"
-              hidden
-              onChange={handleFileChange}
-              accept=".json,.xml,.log,.txt"
-            />
+            <Close sx={{ fontSize: 18 }} />
           </Button>
-          {fileName && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={handleRemoveFile}
-              sx={{
-                position: "absolute",
-                top: 8,
-                right: 8,
-                minWidth: "auto",
-                width: 28,
-                height: 28,
-                p: 0,
-                border: "none",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                "&:hover": {
-                  boxShadow: "none",
-                },
-              }}
-            >
-              <Close sx={{ fontSize: 18 }} />
-            </Button>
-          )}
-        </Box>
+        )}
       </Box>
 
       {/* Button at the bottom */}
