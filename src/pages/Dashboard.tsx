@@ -34,6 +34,7 @@ import { useThemeMode } from "../contexts/ThemeContext";
 import { useStartWorkflow, useResumeWorkflow, useGenerateConf } from "../hooks/use-workflow";
 import InputSection from "../components/InputSection";
 import { ThoughtStep, AgentThoughts } from "../components/types";
+import faviconIcon from "@/assets/favicon.ico";
 
 // Lazy load heavy components
 const ChainOfThoughts = lazy(() => import("../components/ChainOfThoughts"));
@@ -253,7 +254,7 @@ const Dashboard = () => {
         >
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
             <img
-              src="/favicon.ico"
+              src={faviconIcon}
               alt="Logo"
               style={{
                 height: isMobile ? "20px" : "24px",
