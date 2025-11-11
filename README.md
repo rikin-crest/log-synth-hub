@@ -10,6 +10,27 @@ A modern web application for intelligent log parsing and mapping configuration g
 
 > Deployed on Render.com with automatic deployments from the main branch.
 
+## 🔄 PR Previews
+
+Every pull request automatically gets a live preview deployment powered by GitHub Pages. This allows you to:
+
+- See your changes in action before merging
+- Share working demos with your team
+- Test across different environments
+
+### How It Works
+
+1. Create a new pull request to the `main` branch
+2. GitHub Actions will automatically build and deploy a preview
+3. A comment will be added to your PR with a link to the preview
+4. The preview will be updated automatically with new commits
+
+### Notes
+
+- Previews are automatically deleted when the PR is closed
+- Only PRs from the same repository will trigger previews (for security)
+- The preview URL follows this pattern: `https://[username].github.io/[repository]/pr-[pr-number]/`
+
 ## 🚀 Product Features
 
 - **AI-Powered Log Analysis**: Automatically analyze log files and generate field mappings

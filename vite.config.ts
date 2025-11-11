@@ -15,7 +15,10 @@ export default defineConfig(({ mode }) => {
     port: parseInt(env.VITE_SERVER_PORT),
   };
 
+  const isGithubPages = process.env.GITHUB_PAGES === "true";
+
   return {
+    base: isGithubPages ? `/${process.env.GITHUB_REPOSITORY?.split("/")[1] || ""}/` : "/",
     server: serverConfig,
     plugins: [
       react(),
@@ -69,7 +72,11 @@ export default defineConfig(({ mode }) => {
         },
       },
       // Increase chunk size warning limit
-      chunkSizeWarningLimit: 600,
+      chunkSizeWarningLimit: 1000,
+      // Output directory for production build
+      outDir: "dist",
+      // Generate source maps for production
+      sourcemap: true,
       // Enable minification
       minify: "terser",
       terserOptions: {
@@ -87,7 +94,6 @@ export default defineConfig(({ mode }) => {
       },
       // Additional optimizations
       cssCodeSplit: true,
-      sourcemap: false,
       assetsInlineLimit: 4096,
       // Optimize module preloading
       modulePreload: {
