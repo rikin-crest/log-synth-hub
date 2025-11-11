@@ -1,0 +1,69 @@
+name: Deploy Preview
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          GITHUB_PAGES: "true"
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          VITE_PR_NUMBER: ${{ github.event.pull_request.number }}
+          VITE_API_BASE_URL: "https://10.50.1.12:8002"
+        run: npm run build
+
+      - name: Prepare artifact for Pages
+        run: |
+          mkdir -p ./out/pr-${{ github.event.pull_request.number }}
+          cp -r dist/* ./out/pr-${{ github.event.pull_request.number }}/
+          echo "✅ Copied PR preview to ./out/pr-${{ github.event.pull_request.number }}"
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  deploy:
+    if: github.event_name == 'pull_request'
+    environment:
+      name: pr-${{ github.event.pull_request.number }}
+      url: https://rikin-crest.github.io/log-synth-hub/pr-${{ github.event.pull_request.number }}/
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Comment Preview URL
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            🚀 **Preview is ready!**
+            👉 [View it here](https://rikin-crest.github.io/log-synth-hub/pr-${{ github.event.pull_request.number }}/)
