@@ -10,27 +10,6 @@ A modern web application for intelligent log parsing and mapping configuration g
 
 > Deployed on Render.com with automatic deployments from the main branch.
 
-## 🔄 PR Previews
-
-Every pull request automatically gets a live preview deployment powered by GitHub Pages. This allows you to:
-
-- See your changes in action before merging
-- Share working demos with your team
-- Test across different environments
-
-### How It Works
-
-1. Create a new pull request to the `main` branch
-2. GitHub Actions will automatically build and deploy a preview
-3. A comment will be added to your PR with a link to the preview
-4. The preview will be updated automatically with new commits
-
-### Notes
-
-- Previews are automatically deleted when the PR is closed
-- Only PRs from the same repository will trigger previews (for security)
-- The preview URL follows this pattern: `https://[username].github.io/[repository]/pr-[pr-number]/`
-
 ## 🚀 Product Features
 
 - **AI-Powered Log Analysis**: Automatically analyze log files and generate field mappings
@@ -251,6 +230,57 @@ The application is currently deployed on Render.com with automatic deployments.
 - Add your custom domain in Render dashboard
 - Update DNS records to point to Render
 - SSL certificates are automatically provisioned
+
+---
+
+### 🔄 Automated PR Previews
+
+Every pull request automatically gets a live preview deployment powered by GitHub Pages. This feature enables seamless collaboration and testing.
+
+#### ✨ Features
+
+- **🚀 Automatic Deployment**: Every PR to `main` branch triggers a preview build
+- **🔗 Unique URLs**: Each PR gets its own preview URL: `https://[username].github.io/[repository]/pr-[number]/`
+- **💬 PR Comments**: Automatic comments with preview links added to pull requests
+- **🔄 Live Updates**: Previews update automatically with new commits
+
+#### 🛠️ How It Works
+
+1. **Create Pull Request**: Open a PR against the `main` branch
+2. **Automatic Build**: GitHub Actions builds your changes using Vite
+3. **Deploy to GitHub Pages**: Built assets are deployed to a PR-specific path
+4. **Preview Link**: A comment is added to your PR with the preview URL
+5. **Live Updates**: Push new commits to update the preview automatically
+
+#### 🔧 Technical Implementation
+
+- **Build Tool**: Vite with optimized production builds
+- **Routing**: HashRouter for GitHub Pages compatibility
+- **Base URL**: Dynamic base URL configuration for PR-specific paths
+- **Assets**: All static assets properly resolved with correct paths
+- **Environment**: Production-like environment with API configuration
+
+#### 📋 Preview URL Structure
+
+```
+Production:     https://parserpilot.onrender.com/
+PR Preview:     https://rikin-crest.github.io/log-synth-hub/pr-4/
+```
+
+#### 🔒 Security & Access
+
+- **Repository Access**: Only PRs from the same repository trigger previews
+- **Branch Protection**: Only `main` branch PRs are eligible for previews
+- **Environment Isolation**: Each PR preview runs in its own isolated environment
+- **API Configuration**: Previews use the same API endpoints as production
+
+#### 🎯 Benefits for Development
+
+- **Early Testing**: Test changes before merging to main
+- **Stakeholder Review**: Share working demos with non-technical stakeholders  
+- **Cross-browser Testing**: Test across different devices and browsers
+- **Integration Testing**: Verify API integrations in a production-like environment
+- **UI/UX Validation**: Get feedback on visual changes before deployment
 
 ---
 
