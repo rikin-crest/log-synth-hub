@@ -11,8 +11,13 @@ import {
   Tooltip,
   InputAdornment,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
 } from "@mui/material";
-import { Close, AutoAwesome, InfoOutlined } from "@mui/icons-material";
+import { Close, AutoAwesome, InfoOutlined, CloudUpload, InsertDriveFile } from "@mui/icons-material";
 import { toast } from "sonner";
 
 interface ProductOption {
@@ -27,6 +32,7 @@ interface MappingSchemaOptions {
 
 interface InputSectionProps {
   onSubmit: (data: unknown) => void;
+  onUpload: (data: FormData) => void;
   isProcessing: boolean;
   mappingSchema: string;
   setMappingSchema: React.Dispatch<React.SetStateAction<string>>;
@@ -69,6 +75,7 @@ const productLogCategories: Record<string, string[]> = {
 
 const InputSection = ({
   onSubmit,
+  onUpload,
   isProcessing,
   mappingSchema,
   setMappingSchema,
@@ -79,6 +86,11 @@ const InputSection = ({
   const [fileName, setFileName] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadFileName, setUploadFileName] = useState("");
+  const uploadFileInputRef = useRef<HTMLInputElement>(null);
 
   // Get log category options based on selected product
   const getLogCategoryOptions = () => {
@@ -110,6 +122,36 @@ const InputSection = ({
       fileInputRef.current.value = "";
     }
     toast.success("File removed successfully");
+  };
+
+  const handleUploadFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setUploadFile(selectedFile);
+      setUploadFileName(selectedFile.name);
+      toast.success(`File selected: ${selectedFile.name}`);
+    }
+  };
+
+  const handleRemoveUploadFile = () => {
+    setUploadFile(null);
+    setUploadFileName("");
+    if (uploadFileInputRef.current) {
+      uploadFileInputRef.current.value = "";
+    }
+  };
+
+  const handleUploadSubmit = () => {
+    if (!uploadFile) {
+      toast.error("Please select a file to upload");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", uploadFile);
+    onUpload(formData);
+    setIsUploadModalOpen(false);
+    handleRemoveUploadFile();
   };
 
   const handleProductNameChange = (value: string | null) => {
@@ -510,28 +552,51 @@ const InputSection = ({
       </Box>
 
       {/* Button at the bottom */}
-      <Button
-        variant="contained"
-        size="large"
-        startIcon={isProcessing ? undefined : <AutoAwesome />}
-        onClick={handleSubmit}
-        disabled={isProcessing}
-        sx={{
-          py: 1.5,
-          fontSize: "1rem",
-          fontWeight: 600,
-          cursor: isProcessing ? "no-drop" : "pointer",
-          position: "relative",
-          overflow: "hidden",
-          "&:disabled": {
-            color: "#9ca3af !important",
-          },
-          background: "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
-          "&:hover": {
-            background: "linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))",
-          },
-          "&::before": isProcessing
-            ? {
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+        <Button
+          variant="outlined"
+          size="large"
+          startIcon={<CloudUpload />}
+          onClick={() => setIsUploadModalOpen(true)}
+          disabled={isProcessing}
+          sx={{
+            py: 1.5,
+            fontSize: "1rem",
+            fontWeight: 600,
+            borderColor: "divider",
+            color: "text.secondary",
+            "&:hover": {
+              borderColor: "primary.main",
+              color: "primary.main",
+              bgcolor: "action.hover",
+            },
+          }}
+        >
+          Upload existing mapping
+        </Button>
+
+        <Button
+          variant="contained"
+          size="large"
+          startIcon={isProcessing ? undefined : <AutoAwesome />}
+          onClick={handleSubmit}
+          disabled={isProcessing}
+          sx={{
+            py: 1.5,
+            fontSize: "1rem",
+            fontWeight: 600,
+            cursor: isProcessing ? "no-drop" : "pointer",
+            position: "relative",
+            overflow: "hidden",
+            "&:disabled": {
+              color: "#9ca3af !important",
+            },
+            background: "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
+            "&:hover": {
+              background: "linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))",
+            },
+            "&::before": isProcessing
+              ? {
                 content: '""',
                 position: "absolute",
                 top: 0,
@@ -542,15 +607,172 @@ const InputSection = ({
                   "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)",
                 animation: "shimmer 1.5s infinite",
               }
-            : {},
-          "@keyframes shimmer": {
-            "0%": { left: "-100%" },
-            "100%": { left: "100%" },
+              : {},
+            "@keyframes shimmer": {
+              "0%": { left: "-100%" },
+              "100%": { left: "100%" },
+            },
+          }}
+        >
+          {isProcessing ? "Generating Mappings..." : "Generate Mappings"}
+        </Button>
+      </Box>
+
+      {/* Upload Modal */}
+      <Dialog
+        open={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 1.5,
+            backgroundImage: "none",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
           },
         }}
       >
-        {isProcessing ? "Generating Mappings..." : "Generate Mappings"}
-      </Button>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography variant="h6" fontWeight={600}>
+            Upload Existing Mapping
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+            <Typography variant="body2" color="text.secondary">
+              Upload a CSV, XLSX, or CONF file to load existing mappings.
+            </Typography>
+
+            <Box sx={{ height: "180px" }}>
+              {!uploadFileName ? (
+                <Button
+                  component="label"
+                  fullWidth
+                  sx={{
+                    p: 4,
+                    border: "2px dashed",
+                    borderColor: "divider",
+                    borderRadius: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    height: "100%",
+                    bgcolor: "background.default",
+                    transition: "all 0.2s ease-in-out",
+                    "&:hover": {
+                      borderColor: "primary.main",
+                      bgcolor: "action.hover",
+                      transform: "translateY(-2px)",
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      p: 2,
+                      borderRadius: "50%",
+                      bgcolor: "primary.main",
+                      color: "primary.contrastText",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    }}
+                  >
+                    <CloudUpload fontSize="large" />
+                  </Box>
+                  <Box sx={{ textAlign: "center" }}>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      Click to upload file
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Supported formats: .csv, .xlsx, .conf
+                    </Typography>
+                  </Box>
+                  <input
+                    ref={uploadFileInputRef}
+                    type="file"
+                    hidden
+                    onChange={handleUploadFileChange}
+                    accept=".csv,.xlsx,.conf"
+                  />
+                </Button>
+              ) : (
+                <Box
+                  sx={{
+                    p: 3,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    bgcolor: "background.paper",
+                    position: "relative",
+                    height: "100%",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 1.5,
+                      bgcolor: "primary.light",
+                      color: "primary.main",
+                      display: "flex",
+                    }}
+                  >
+                    <InsertDriveFile />
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="subtitle2" fontWeight={600} noWrap>
+                      {uploadFileName}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Ready to upload
+                    </Typography>
+                  </Box>
+                  <IconButton
+                    size="small"
+                    onClick={handleRemoveUploadFile}
+                    sx={{
+                      color: "text.secondary",
+                      "&:hover": { color: "error.main", bgcolor: "error.lighter" },
+                    }}
+                  >
+                    <Close />
+                  </IconButton>
+                </Box>
+              )}
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 1 }}>
+          <Button
+            onClick={() => setIsUploadModalOpen(false)}
+            color="inherit"
+            sx={{ fontWeight: 600 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUploadSubmit}
+            variant="contained"
+            disabled={!uploadFile}
+            sx={{
+              px: 3,
+              fontWeight: 600,
+              background: "linear-gradient(135deg, hsl(260, 85%, 60%), hsl(220, 70%, 55%))",
+              "&:hover": {
+                background: "linear-gradient(135deg, hsl(260, 85%, 55%), hsl(220, 70%, 50%))",
+              },
+              "&:disabled": {
+                background: "action.disabledBackground",
+              },
+            }}
+          >
+            Load data
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

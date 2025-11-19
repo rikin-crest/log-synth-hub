@@ -8,7 +8,7 @@ import {
 import { API_CONFIG } from "./api";
 import { toast } from "sonner";
 import { getAuthHeader, handleUnauthorized } from "./auth";
-// import { sample_res } from "../../sample_res";
+import { sample_res } from "../../sample_res";
 
 export const startWorkflow = async (
   payload: FormData,
@@ -397,6 +397,47 @@ export const getMappingDoc = async (
     return markdownData;
   } catch (e: unknown) {
     const errorMessage = (e as { message: string })?.message || "Failed to get mapping document!";
+    toast.error(errorMessage);
+    return null;
+  }
+};
+
+export const uploadMapping = async (
+  payload: FormData
+): Promise<WorkflowResponse | null> => {
+  try {
+    // Mocking the response for now as requested
+    // In a real scenario, we would uncomment the API call below
+
+    /*
+    const response = await fetch(`${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.UPLOAD_MAPPING}`, {
+      method: "POST",
+      headers: {
+        ...getAuthHeader(),
+      },
+      body: payload,
+    });
+
+    if (!response.ok) {
+      // ... error handling ...
+      return null;
+    }
+
+    const result = await response.json();
+    return result;
+    */
+
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Return mock data
+    // We need to cast it to WorkflowResponse because sample_res might not perfectly match the type definition
+    // or if it does, it's fine.
+    return sample_res as unknown as WorkflowResponse;
+
+  } catch (e: unknown) {
+    const errorMessage = (e as { message: string })?.message || "Failed to upload mapping!";
+    console.error("Upload error:", errorMessage, e);
     toast.error(errorMessage);
     return null;
   }

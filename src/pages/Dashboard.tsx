@@ -2,7 +2,7 @@ import { useState, lazy, Suspense } from "react";
 import { Box, Typography, IconButton, Tabs, Tab } from "@mui/material";
 import { Settings, Psychology, AccountTree, Fullscreen } from "@mui/icons-material";
 import { toast } from "sonner";
-import { useStartWorkflow, useResumeWorkflow, useGenerateConf } from "../hooks/use-workflow";
+import { useStartWorkflow, useResumeWorkflow, useGenerateConf, useUploadMapping } from "../hooks/use-workflow";
 import InputSection from "../components/InputSection";
 import { ThoughtStep, AgentThoughts } from "../components/types";
 
@@ -184,6 +184,24 @@ const Dashboard = () => {
     );
   };
 
+  const uploadMappingMutation = useUploadMapping();
+
+  const handleUploadMapping = (formData: FormData) => {
+    setAgentThoughts([]);
+    setMappingData([]);
+    setCurrentInvocationNumber(0);
+
+    uploadMappingMutation.mutate(formData, {
+      onSuccess: (result) => {
+        if (result) {
+          addToSessionStorage("thread_id", result.thread_id);
+          setMappingData(result.output || []);
+          toast.success("Mapping loaded successfully");
+        }
+      },
+    });
+  };
+
   return (
     <Box
       sx={{
@@ -248,7 +266,8 @@ const Dashboard = () => {
             </Box>
             <InputSection
               onSubmit={handleGenerateMappings}
-              isProcessing={isProcessing}
+              onUpload={handleUploadMapping}
+              isProcessing={isProcessing || uploadMappingMutation.isPending}
               mappingSchema={mappingSchema}
               setMappingSchema={setMappingSchema}
             />

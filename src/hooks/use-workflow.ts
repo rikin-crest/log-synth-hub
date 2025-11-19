@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { startWorkflow, resumeWorkflow, generateConf, getMappingDoc } from "@/api/workflow";
+import { startWorkflow, resumeWorkflow, generateConf, getMappingDoc, uploadMapping } from "@/api/workflow";
 import {
   WorkflowResponse,
   ResumeWorkflowPayload,
@@ -79,6 +79,23 @@ export const useGetMappingDoc = () => {
   >({
     mutationFn: async ({ payload, headers }) => {
       return await getMappingDoc(payload, headers);
+    },
+  });
+};
+
+/**
+ * Hook for uploading existing mapping
+ */
+export const useUploadMapping = () => {
+  return useMutation<WorkflowResponse | null, Error, FormData>({
+    mutationFn: async (formData) => {
+      return await uploadMapping(formData);
+    },
+    onSuccess: () => {
+      toast.success("Mapping uploaded successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to upload mapping");
     },
   });
 };

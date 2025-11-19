@@ -1,4 +1,4 @@
-import React from "react";
+import { useState, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -11,6 +11,7 @@ import {
   InputAdornment,
   Tooltip,
   IconButton,
+  Chip,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { TableChart, Download, Search, InfoOutlined } from "@mui/icons-material";
@@ -26,41 +27,106 @@ interface MappingTableProps {
   loading?: boolean;
 }
 const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => {
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const gridColumns: GridColDef[] = columns.map((col) => ({
-    field: col.key,
-    headerName: col.name,
-    flex: 1,
-    minWidth: 120,
-    resizable: false,
-    sortable: true,
-    renderCell: (params) => (
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          height: "100%",
-          width: "100%",
-          minWidth: 0,
-        }}
-        title={String(params.value || "")}
-      >
-        <span
-          style={{
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            minWidth: 0,
-          }}
-        >
-          {params.value || ""}
-        </span>
-      </Box>
-    ),
-  }));
+  const [searchTerm, setSearchTerm] = useState("");
+  const gridColumns: GridColDef[] = useMemo(() => {
+    const baseColumns: GridColDef[] = columns.map((col) => {
+      const isConfidenceScore = col.key === "Confidence Score";
+
+      return {
+        field: col.key,
+        headerName: col.name,
+        flex: 1,
+        minWidth: 120,
+        resizable: false,
+        sortable: true,
+        renderCell: (params) => {
+          if (isConfidenceScore) {
+            const score = Number(params.value);
+            let color = "error.main";
+            if (score > 90) color = "success.main";
+            else if (score > 80) color = "warning.main";
+
+            return (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  height: "100%",
+                  width: "100%",
+                }}
+              >
+                <Typography variant="body2" sx={{ color, fontWeight: 600 }}>
+                  {params.value}
+                </Typography>
+              </Box>
+            );
+          }
+
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                height: "100%",
+                width: "100%",
+                minWidth: 0,
+              }}
+              title={String(params.value || "")}
+            >
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  minWidth: 0,
+                }}
+              >
+                {params.value || ""}
+              </span>
+            </Box>
+          );
+        },
+      };
+    });
+
+    // Find index of Confidence Score and inject Status column
+    const scoreIndex = baseColumns.findIndex((c) => c.field === "Confidence Score");
+    if (scoreIndex !== -1) {
+      const statusColumn: GridColDef = {
+        field: "confidence_status",
+        headerName: "Status",
+        flex: 1,
+        minWidth: 150,
+        resizable: false,
+        sortable: false,
+        renderCell: (params) => {
+          const score = Number(params.row["Confidence Score"]);
+          let label = "Low Confidence";
+          let color: "error" | "warning" | "success" = "error";
+
+          if (score > 90) {
+            label = "Highly Confident";
+            color = "success";
+          } else if (score > 80) {
+            label = "Medium Confident";
+            color = "warning";
+          }
+
+          return (
+            <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+              <Chip label={label} color={color} size="small" sx={{ fontWeight: 500 }} />
+            </Box>
+          );
+        },
+      };
+      baseColumns.splice(scoreIndex + 1, 0, statusColumn);
+    }
+
+    return baseColumns;
+  }, [columns]);
 
   // Filter data based on search term
-  const filteredData = React.useMemo(() => {
+  const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return data;
 
     return data.filter((row) =>
