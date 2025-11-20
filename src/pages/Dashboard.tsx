@@ -441,7 +441,7 @@ const Dashboard = () => {
           {/* Feedback Section */}
           <Box
             sx={{
-              height: { xs: "100%", md: "200px" },
+              height: { xs: "100%", md: "120px" },
               overflow: "visible",
               width: "100%",
             }}

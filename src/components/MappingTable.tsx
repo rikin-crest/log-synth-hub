@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import {
   Card,
   CardContent,
@@ -6,15 +6,37 @@ import {
   Typography,
   Button,
   Stack,
-  CircularProgress,
   TextField,
   InputAdornment,
   Tooltip,
   IconButton,
   Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Collapse,
+  Paper,
+  useTheme,
+  alpha,
+  CircularProgress,
+  Grid,
+  Snackbar,
+  Autocomplete,
 } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { TableChart, Download, Search, InfoOutlined } from "@mui/icons-material";
+import {
+  TableChart,
+  Download,
+  Search,
+  InfoOutlined,
+  KeyboardArrowDown,
+  KeyboardArrowUp,
+  CheckCircle,
+  RadioButtonUnchecked,
+  ContentCopy,
+} from "@mui/icons-material";
 
 interface Column {
   key: string;
@@ -26,104 +48,512 @@ interface MappingTableProps {
   columns: Column[];
   loading?: boolean;
 }
-const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const gridColumns: GridColDef[] = useMemo(() => {
-    const baseColumns: GridColDef[] = columns.map((col) => {
-      const isConfidenceScore = col.key === "Confidence Score";
 
-      return {
-        field: col.key,
-        headerName: col.name,
-        flex: 1,
-        minWidth: 120,
-        resizable: false,
-        sortable: true,
-        renderCell: (params) => {
+// Mock predicted fields for the UI demo (Top 3 suggestions)
+const MOCK_PREDICTED_FIELDS = [
+  "properties.InitiatingProcessToken",
+  "properties.InitiatingProcessTokenElevation",
+  "properties.InitiatingProcessTokenId",
+];
+
+// All available UDM fields for manual selection
+const ALL_UDM_FIELDS = [
+  "metadata.event_type",
+  "metadata.product_name",
+  "metadata.vendor_name",
+  "metadata.product_version",
+  "metadata.event_timestamp",
+  "principal.hostname",
+  "principal.ip",
+  "principal.user.userid",
+  "principal.user.username",
+  "target.hostname",
+  "target.ip",
+  "target.port",
+  "target.file.full_path",
+  "target.file.sha256",
+  "target.file.md5",
+  "target.process.pid",
+  "target.process.command_line",
+  "network.http.method",
+  "network.http.response_code",
+  "network.dns.questions.name",
+  "security_result.action",
+  "security_result.severity",
+  "security_result.rule_name",
+  "about.file.full_path",
+  "about.file.sha1",
+  "about.file.sha256",
+  "about.file.md5",
+  "about.process.pid",
+  "about.process.command_line",
+  "about.process.file.full_path",
+  "about.registry.registry_key",
+  "about.registry.registry_value_name",
+  "about.registry.registry_value_data",
+  "properties.InitiatingProcessToken",
+  "properties.InitiatingProcessTokenElevation",
+  "properties.InitiatingProcessTokenId",
+  "properties.SHA1",
+  "properties.SHA256",
+  "properties.FolderPath",
+  "properties.FileName",
+  "properties.ProcessCommandLine",
+  "properties.AccountName",
+  "properties.AccountDomain",
+  "properties.LogonType",
+  "properties.IpAddress",
+  "properties.Port",
+  "properties.Protocol",
+  "properties.RemoteIP",
+  "properties.RemotePort",
+  "properties.LocalIP",
+  "properties.LocalPort",
+].sort();
+
+// Custom Circular Gauge Component
+const ScoreGauge = ({ score, color }: { score: number; color: string }) => {
+  const theme = useTheme();
+
+  return (
+    <Box sx={{ position: "relative", display: "inline-flex" }}>
+      {/* Background Circle */}
+      <CircularProgress
+        variant="determinate"
+        value={100}
+        size={120}
+        thickness={4}
+        sx={{ color: alpha(theme.palette.grey[200], 0.5) }}
+      />
+      {/* Foreground Circle */}
+      <CircularProgress
+        variant="determinate"
+        value={score}
+        size={120}
+        thickness={4}
+        sx={{
+          color: color,
+          position: "absolute",
+          left: 0,
+          strokeLinecap: "round",
+          "& .MuiCircularProgress-circle": {
+            transition: "stroke-dashoffset 1s ease-in-out",
+          },
+        }}
+      />
+      {/* Center Text */}
+      <Box
+        sx={{
+          top: 0,
+          left: 0,
+          bottom: 0,
+          right: 0,
+          position: "absolute",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+        }}
+      >
+        <Typography variant="h4" component="div" sx={{ fontWeight: 700, color: "text.primary" }}>
+          {score}%
+        </Typography>
+        <Typography variant="caption" component="div" sx={{ color: "text.secondary", mt: -0.5 }}>
+          Confidence
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
+const Row = ({
+  row,
+  columns,
+}: {
+  row: Record<string, unknown>;
+  columns: Column[];
+}) => {
+  const [open, setOpen] = useState(false);
+  const [selectedPrediction, setSelectedPrediction] = useState<string | null>(null);
+  const [manualFieldSelection, setManualFieldSelection] = useState<string | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const theme = useTheme();
+
+  // Extract values
+  const productField = String(row["RawLog Field Name"] || "N/A");
+  const udmField = String(row["UDM Field Name"] || "N/A");
+  const logic = String(row["Logic"] || "N/A");
+  const llmReasoning = String(row["LLM Reasoning"] || "N/A");
+  const confidenceScore = Number(row["Confidence Score"] || 0);
+
+  // Determine status color for the main row pill and gauge
+  let statusColor = theme.palette.error.main;
+  if (confidenceScore > 90) statusColor = theme.palette.success.main;
+  else if (confidenceScore > 80) statusColor = theme.palette.warning.main;
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setSnackbarOpen(true);
+  };
+
+  return (
+    <Fragment>
+      <TableRow
+        sx={{
+          "& > *": { borderBottom: "unset" },
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+          "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.04) },
+          "& .expand-icon": {
+            opacity: open ? 1 : 0,
+            transition: "opacity 0.2s ease",
+          },
+          "&:hover .expand-icon": {
+            opacity: 1,
+          },
+        }}
+        onClick={() => setOpen(!open)}
+      >
+        <TableCell padding="checkbox" sx={{ width: 40 }}>
+          <IconButton
+            aria-label="expand row"
+            size="small"
+            className="expand-icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(!open);
+            }}
+          >
+            {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+          </IconButton>
+        </TableCell>
+        {columns.map((col) => {
+          const isConfidenceScore = col.key === "Confidence Score";
+          const value = row[col.key];
+
           if (isConfidenceScore) {
-            const score = Number(params.value);
-            let color = "error.main";
-            if (score > 90) color = "success.main";
-            else if (score > 80) color = "warning.main";
-
             return (
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  height: "100%",
-                  width: "100%",
-                }}
-              >
-                <Typography variant="body2" sx={{ color, fontWeight: 600 }}>
-                  {params.value}
-                </Typography>
-              </Box>
+              <TableCell key={col.key}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: statusColor }}>
+                    {confidenceScore}%
+                  </Typography>
+                </Box>
+              </TableCell>
             );
           }
 
           return (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                height: "100%",
-                width: "100%",
-                minWidth: 0,
-              }}
-              title={String(params.value || "")}
-            >
-              <span
-                style={{
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  minWidth: 0,
-                }}
+            <TableCell key={col.key}>
+              <Typography
+                variant="body2"
+                noWrap
+                sx={{ maxWidth: 200, display: "block", color: "text.primary" }}
+                title={String(value || "")}
               >
-                {params.value || ""}
-              </span>
-            </Box>
+                {String(value || "")}
+              </Typography>
+            </TableCell>
           );
-        },
-      };
-    });
+        })}
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0, borderBottom: "none" }} colSpan={columns.length + 1}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ py: 4, px: 4, bgcolor: "#f3f4f6" }}>
+              {/* First Row: Gauge + Product/UDM Stack */}
+              <Grid container spacing={3} sx={{ flexWrap: "wrap" }}>
+                {/* Widget 1: Confidence Gauge */}
+                <Grid item xs={12} md={3}>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      height: "100%",
+                      width: "100%",
+                      borderRadius: "16px",
+                      boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.05)",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, width: "100%", textAlign: "center" }}>
+                      Score
+                    </Typography>
+                    <ScoreGauge score={confidenceScore} color={statusColor} />
+                  </Paper>
+                </Grid>
 
-    // Find index of Confidence Score and inject Status column
-    const scoreIndex = baseColumns.findIndex((c) => c.field === "Confidence Score");
-    if (scoreIndex !== -1) {
-      const statusColumn: GridColDef = {
-        field: "confidence_status",
-        headerName: "Status",
-        flex: 1,
-        minWidth: 150,
-        resizable: false,
-        sortable: false,
-        renderCell: (params) => {
-          const score = Number(params.row["Confidence Score"]);
-          let label = "Low Confidence";
-          let color: "error" | "warning" | "success" = "error";
+                {/* Widget 2 & 3: Mapping Details Stacked */}
+                <Grid item xs={12} md={9} sx={{ display: "flex", flexGrow: 1, minWidth: 0 }}>
+                  <Stack spacing={2} sx={{ height: "100%", width: "100%" }}>
+                    {/* Product Field (Source) */}
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2,
+                        width: "100%",
+                        minHeight: "80px",
+                        flex: 1,
+                        borderRadius: "16px",
+                        boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.05)",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        position: "relative",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 0.5 }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600 }}>
+                          Product Field (Source)
+                        </Typography>
+                        <Tooltip title="Copy">
+                          <IconButton size="small" onClick={() => handleCopy(productField)} sx={{ p: 0.5 }}>
+                            <ContentCopy fontSize="small" sx={{ fontSize: 14 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "#1e293b", wordBreak: "break-all", lineHeight: 1.3 }}>
+                        {productField}
+                      </Typography>
+                    </Paper>
 
-          if (score > 90) {
-            label = "Highly Confident";
-            color = "success";
-          } else if (score > 80) {
-            label = "Medium Confident";
-            color = "warning";
-          }
+                    {/* UDM Field (Target) */}
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2,
+                        width: "100%",
+                        minHeight: "80px",
+                        flex: 1,
+                        borderRadius: "16px",
+                        boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.05)",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        position: "relative",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 0.5 }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600 }}>
+                          UDM Field (Target)
+                        </Typography>
+                        <Tooltip title="Copy">
+                          <IconButton size="small" onClick={() => handleCopy(udmField)} sx={{ p: 0.5 }}>
+                            <ContentCopy fontSize="small" sx={{ fontSize: 14 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "#8b5cf6", wordBreak: "break-all", lineHeight: 1.3 }}>
+                        {udmField}
+                      </Typography>
+                    </Paper>
+                  </Stack>
+                </Grid>
+              </Grid>
 
-          return (
-            <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
-              <Chip label={label} color={color} size="small" sx={{ fontWeight: 500 }} />
+              {/* Remaining Items in Stack */}
+              <Stack spacing={3} sx={{ mt: 3 }}>
+                {/* Widget 4a: Logic */}
+                {logic !== "N/A" && (
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      width: "100%",
+                      borderRadius: "16px",
+                      boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.05)",
+                      bgcolor: "#fff",
+                      overflow: "hidden",
+                      position: "relative"
+                    }}
+                  >
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                      Logic
+                    </Typography>
+                    <Box sx={{ position: "relative", zIndex: 1 }}>
+                      <Box sx={{ p: 2, bgcolor: "#f8fafc", borderRadius: 2, border: "1px dashed #cbd5e1" }}>
+                        <Typography variant="caption" sx={{ fontFamily: "monospace", color: "#475569", display: "block" }}>
+                          {logic}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    {/* Decorative gradient blob */}
+                    <Box sx={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", bgcolor: alpha("#06b6d4", 0.1), zIndex: 0 }} />
+                  </Paper>
+                )}
+
+                {/* Widget 4b: AI Reasoning */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    width: "100%",
+                    borderRadius: "16px",
+                    boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.05)",
+                    bgcolor: "#fff",
+                    overflow: "hidden",
+                    position: "relative"
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                    AI Reasoning
+                  </Typography>
+                  <Box sx={{ position: "relative", zIndex: 1 }}>
+                    <Typography variant="body2" sx={{ color: "text.secondary", lineHeight: 1.6 }}>
+                      {llmReasoning}
+                    </Typography>
+                  </Box>
+                  {/* Decorative gradient blob */}
+                  <Box sx={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", bgcolor: alpha("#06b6d4", 0.1), zIndex: 0 }} />
+                </Paper>
+
+                {/* Widget 5: Feedback / Filters */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    width: "100%",
+                    borderRadius: "16px",
+                    boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.05)",
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      Refine Mapping
+                    </Typography>
+                    <IconButton size="small">
+                      <InfoOutlined fontSize="small" sx={{ color: "text.disabled" }} />
+                    </IconButton>
+                  </Box>
+
+                  <Grid container spacing={3}>
+                    {/* Left: 60% - Suggested Alternatives */}
+                    <Grid item xs={12} md={7}>
+                      <Typography variant="caption" sx={{ color: "text.secondary", mb: 1.5, display: "block", fontWeight: 600 }}>
+                        Suggested Alternatives
+                      </Typography>
+                      <Stack spacing={1}>
+                        {MOCK_PREDICTED_FIELDS.map((field) => (
+                          <Box
+                            key={field}
+                            onClick={() => {
+                              setSelectedPrediction(field);
+                              setManualFieldSelection(null); // Clear manual selection if selecting a suggestion
+                            }}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              p: 1.5,
+                              borderRadius: "12px",
+                              cursor: "pointer",
+                              transition: "all 0.2s",
+                              bgcolor: selectedPrediction === field ? alpha("#8b5cf6", 0.05) : "transparent",
+                              border: selectedPrediction === field ? "2px solid #8b5cf6" : "2px solid transparent",
+                              "&:hover": { bgcolor: alpha("#8b5cf6", 0.05) },
+                            }}
+                          >
+                            {selectedPrediction === field ? (
+                              <CheckCircle sx={{ fontSize: 20, color: "#8b5cf6", mr: 1.5 }} />
+                            ) : (
+                              <RadioButtonUnchecked sx={{ fontSize: 20, color: "text.disabled", mr: 1.5 }} />
+                            )}
+                            <Typography variant="body2" sx={{ fontWeight: 500, color: selectedPrediction === field ? "#8b5cf6" : "text.primary" }}>
+                              {field}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Stack>
+                    </Grid>
+
+                    {/* Right: 40% - Manual Override (Centered) */}
+                    <Grid item xs={12} md={5} sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Box sx={{ bgcolor: "#f8fafc", p: 3, borderRadius: "16px", width: "100%", maxWidth: "400px" }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary", mb: 1.5, display: "block", fontWeight: 600 }}>
+                          Manual Override
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block", fontSize: "11px" }}>
+                          Search and select from all available UDM fields
+                        </Typography>
+                        <Autocomplete
+                          fullWidth
+                          options={ALL_UDM_FIELDS}
+                          value={manualFieldSelection}
+                          onChange={(_, newValue) => {
+                            setManualFieldSelection(newValue);
+                            if (newValue) {
+                              setSelectedPrediction(null); // Clear suggestion if manually selecting
+                            }
+                          }}
+                          size="small"
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              placeholder="Search all fields..."
+                              variant="outlined"
+                            />
+                          )}
+                          sx={{
+                            mb: 2,
+                            "& .MuiOutlinedInput-root": {
+                              bgcolor: "#fff",
+                              borderRadius: "12px",
+                              "& fieldset": { borderColor: "#e2e8f0" },
+                              "&:hover fieldset": { borderColor: "#cbd5e1" },
+                              "&.Mui-focused fieldset": { borderColor: "#8b5cf6" },
+                            }
+                          }}
+                        />
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          disabled={!selectedPrediction && !manualFieldSelection}
+                          sx={{
+                            borderRadius: "12px",
+                            py: 1,
+                            textTransform: "none",
+                            fontWeight: 600,
+                            bgcolor: "#8b5cf6",
+                            boxShadow: "0 4px 14px 0 rgba(139, 92, 246, 0.39)",
+                            "&:hover": {
+                              bgcolor: "#7c3aed",
+                              boxShadow: "0 6px 20px rgba(139, 92, 246, 0.23)",
+                            },
+                            "&:disabled": {
+                              bgcolor: "#e2e8f0",
+                              color: "#94a3b8"
+                            }
+                          }}
+                        >
+                          Apply Changes
+                        </Button>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Stack>
             </Box>
-          );
-        },
-      };
-      baseColumns.splice(scoreIndex + 1, 0, statusColumn);
-    }
+          </Collapse>
+        </TableCell>
+      </TableRow>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={2000}
+        onClose={() => setSnackbarOpen(false)}
+        message="Copied to clipboard"
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
+    </Fragment>
+  );
+};
 
-    return baseColumns;
-  }, [columns]);
+const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => {
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Filter data based on search term
   const filteredData = useMemo(() => {
@@ -138,30 +568,9 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
     );
   }, [data, columns, searchTerm]);
 
-  const gridRows = filteredData.map((row, index) => ({ id: index, ...row }));
-
-  const CustomLoadingOverlay = () => (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100%",
-        gap: 2,
-      }}
-    >
-      <CircularProgress size={40} />
-      <Typography variant="body1" color="text.secondary">
-        It may take a few minutes to generate mappings.
-      </Typography>
-    </Box>
-  );
-
   const exportToCsv = () => {
     if (filteredData.length === 0) return;
 
-    // Helper function to escape CSV values
     const escapeCsvValue = (value: unknown): string => {
       const strValue = String(value ?? "");
       if (strValue.includes(",") || strValue.includes('"') || strValue.includes("\n")) {
@@ -171,7 +580,7 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
     };
 
     const csvContent = [
-      columns.map((col) => escapeCsvValue(col.name)).join(","), // Header row with escaped names
+      columns.map((col) => escapeCsvValue(col.name)).join(","),
       ...filteredData.map((row) => columns.map((col) => escapeCsvValue(row[col.key])).join(",")),
     ].join("\n");
 
@@ -184,8 +593,6 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    // Cleanup: revoke the object URL to prevent memory leaks
     URL.revokeObjectURL(url);
   };
 
@@ -289,153 +696,67 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
             }}
           >
             {data.length > 0 && (
-              <>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<Download sx={{ fontSize: 16 }} />}
-                  onClick={exportToCsv}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 600,
-                    px: 2,
-                    py: 0.75,
-                    borderRadius: 2,
-                    fontSize: 14,
-                    background: "linear-gradient(135deg, hsl(220, 70%, 55%), hsl(260, 85%, 60%))",
-                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                    "& .MuiButton-startIcon": {
-                      marginRight: 1,
-                      marginLeft: 0,
-                    },
-                    "&:hover": {
-                      background: "linear-gradient(135deg, hsl(220, 70%, 50%), hsl(260, 85%, 55%))",
-                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                    },
-                    transition: "all 0.2s ease-in-out",
-                  }}
-                >
-                  Export CSV
-                </Button>
-              </>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<Download sx={{ fontSize: 16 }} />}
+                onClick={exportToCsv}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 600,
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: 2,
+                  fontSize: 14,
+                  background: "linear-gradient(135deg, hsl(220, 70%, 55%), hsl(260, 85%, 60%))",
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                  "& .MuiButton-startIcon": {
+                    marginRight: 1,
+                    marginLeft: 0,
+                  },
+                  "&:hover": {
+                    background: "linear-gradient(135deg, hsl(220, 70%, 50%), hsl(260, 85%, 55%))",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                  },
+                  transition: "all 0.2s ease-in-out",
+                }}
+              >
+                Export CSV
+              </Button>
             )}
           </Stack>
         </Box>
 
-        {/* DataGrid */}
-        <Box
-          sx={{
-            flexGrow: 1,
-            px: { xs: 2, md: 3 },
-            pb: { xs: 2, md: 3 },
-            width: "100%",
-            overflow: "hidden",
-          }}
-        >
-          <DataGrid
-            rows={gridRows}
-            columns={gridColumns}
-            disableRowSelectionOnClick
-            density="compact"
-            sortingOrder={["asc", "desc"]}
-            loading={loading}
-            localeText={{
-              noRowsLabel: "No Mappings",
-              noColumnsOverlayLabel: "No Mappings",
-            }}
-            slots={{
-              loadingOverlay: CustomLoadingOverlay,
-            }}
-            sx={{
-              border: 1,
-              borderColor: "divider",
-              height: { xs: "300px", md: "100%" },
-              "& .MuiDataGrid-columnHeaders": {
-                fontWeight: 600,
-                fontSize: { xs: "0.75rem", md: "0.875rem" },
-                borderColor: "divider",
-              },
-              "& .MuiDataGrid-cell": {
-                fontSize: { xs: "0.75rem", md: "0.875rem" },
-                padding: { xs: "4px 8px", md: "8px 16px" },
-                borderRight: "1px solid",
-                borderColor: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? "rgba(255, 255, 255, 0.12)"
-                    : "rgba(0, 0, 0, 0.12)",
-                display: "flex",
-                alignItems: "center",
-                "&:last-child": {
-                  borderRight: "none",
-                },
-              },
-              "& .MuiDataGrid-columnHeader": {
-                borderRight: "1px solid",
-                borderColor: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? "rgba(255, 255, 255, 0.12)"
-                    : "rgba(0, 0, 0, 0.12)",
-                "&:last-child": {
-                  borderRight: "none",
-                },
-              },
-              "& .MuiDataGrid-columnSeparator--sideRight": {
-                display: "none !important",
-              },
-              "& .MuiDataGrid-columnHeader--last": {
-                borderRight: "none",
-              },
-              "& .MuiDataGrid-overlay": {
-                backgroundColor: "background.paper",
-              },
-              "& .MuiDataGrid-row": {
-                "&:hover": {
-                  backgroundColor: "action.hover",
-                },
-                "&:last-child": {
-                  borderBottom: 1,
-                  borderColor: "divider",
-                },
-              },
-              "& .MuiDataGrid-columnSeparator": {
-                display: "block",
-                color: "divider",
-              },
-              "& .MuiDataGrid-columnHeader:last-child .MuiDataGrid-columnSeparator": {
-                display: "none",
-              },
-              "& MuiDataGrid-columnSeparator--sideRight": {
-                display: "none",
-              },
-              "& .MuiDataGrid-columnHeaderTitle": {
-                fontWeight: 600,
-              },
-              "& .MuiDataGrid-filler": {
-                display: "none",
-              },
-              "& .MuiDataGrid-virtualScroller": {
-                overflow: "auto",
-              },
-              "& .MuiDataGrid-main": {
-                overflow: "hidden",
-              },
-              "& .MuiDataGrid-toolbarContainer": {
-                padding: "8px 16px",
-                borderBottom: 1,
-                borderColor: "divider",
-                backgroundColor: "action.hover",
-              },
-              "& .MuiDataGrid-footerContainer": {
-                borderTop: 1,
-                borderColor: "divider",
-              },
-            }}
-            initialState={{
-              pagination: { paginationModel: { pageSize: 20, page: 0 } },
-            }}
-            pageSizeOptions={[10, 20, 50, 100]}
-          />
-        </Box>
+        {/* Table Container */}
+        <TableContainer sx={{ flexGrow: 1, overflow: "auto", px: { xs: 2, md: 3 }, pb: { xs: 2, md: 3 } }}>
+          <Table stickyHeader aria-label="collapsible table" size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell width={40} />
+                {columns.map((col) => (
+                  <TableCell key={col.key} sx={{ fontWeight: 600, bgcolor: "background.paper" }}>
+                    {col.name}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredData.length > 0 ? (
+                filteredData.map((row, index) => (
+                  <Row key={index} row={row} columns={columns} />
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 4 }}>
+                    <Typography variant="body1" color="text.secondary">
+                      No Mappings Found
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </CardContent>
     </Card>
   );

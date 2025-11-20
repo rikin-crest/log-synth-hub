@@ -69,7 +69,7 @@ const FeedbackSection = ({
             variant="h6"
             sx={{ fontWeight: 600, display: "flex", alignItems: "center", pb: 0.6 }}
           >
-            Feedback & Actions
+            Actions
           </Typography>
           <Tooltip
             title="Provide feedback to refine the mappings and generate the final configuration file"
@@ -82,7 +82,7 @@ const FeedbackSection = ({
           </Tooltip>
         </Box>
 
-        <TextField
+        {/* <TextField
           fullWidth
           placeholder={disabled ? "Generate mappings first..." : "Provide feedback..."}
           value={feedback}
@@ -122,10 +122,10 @@ const FeedbackSection = ({
               cursor: disabled ? "no-drop !important" : "text",
             },
           }}
-        />
+        /> */}
 
         <Box sx={{ display: "flex", gap: 2 }}>
-          <Button
+          {/* <Button
             variant="outlined"
             size="large"
             startIcon={<Refresh />}
@@ -150,7 +150,7 @@ const FeedbackSection = ({
             }}
           >
             Submit Feedback
-          </Button>
+          </Button> */}
 
           <Button
             variant="contained"

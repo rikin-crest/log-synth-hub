@@ -55,7 +55,7 @@ export const sample_res = {
       Logic: null,
       "LLM Reasoning":
         "The raw log field 'properties.FolderPath' indicates the folder containing the file involved in the event. This should be combined with the file name to form the full path. The UDM field 'about.file.full_path' is the appropriate destination for the complete file path. Thus, 'properties.FolderPath' is mapped to 'about.file.full_path'.",
-      "Confidence Score": 85,
+      "Confidence Score": 50,
     },
     {
       "RawLog Field Name": "properties.SHA1",
@@ -63,7 +63,7 @@ export const sample_res = {
       Logic: null,
       "LLM Reasoning":
         "The raw log field 'properties.SHA1' contains the SHA-1 hash of the file involved in the event. The UDM field 'about.file.sha1' is designated for storing the SHA-1 hash of a file that is the subject of the event. Consequently, 'properties.SHA1' should be mapped to 'about.file.sha1'.",
-      "Confidence Score": 99,
+      "Confidence Score": 75,
     },
     {
       "RawLog Field Name": "properties.SHA256",
