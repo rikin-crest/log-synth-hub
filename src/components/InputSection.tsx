@@ -489,7 +489,7 @@ const InputSection = ({
           </Select>
         </FormControl>
       </Box>
-      <Box>
+      {/* <Box>
         <Button
           variant="outlined"
           component="label"
@@ -549,7 +549,7 @@ const InputSection = ({
             <Close sx={{ fontSize: 18 }} />
           </Button>
         )}
-      </Box>
+      </Box> */}
 
       {/* Button at the bottom */}
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>

@@ -55,7 +55,7 @@ export const sample_res = {
       Logic: null,
       "LLM Reasoning":
         "The raw log field 'properties.FolderPath' indicates the folder containing the file involved in the event. This should be combined with the file name to form the full path. The UDM field 'about.file.full_path' is the appropriate destination for the complete file path. Thus, 'properties.FolderPath' is mapped to 'about.file.full_path'.",
-      "Confidence Score": 50,
+      "Confidence Score": 45,
     },
     {
       "RawLog Field Name": "properties.SHA1",
@@ -63,7 +63,7 @@ export const sample_res = {
       Logic: null,
       "LLM Reasoning":
         "The raw log field 'properties.SHA1' contains the SHA-1 hash of the file involved in the event. The UDM field 'about.file.sha1' is designated for storing the SHA-1 hash of a file that is the subject of the event. Consequently, 'properties.SHA1' should be mapped to 'about.file.sha1'.",
-      "Confidence Score": 75,
+      "Confidence Score": 65,
     },
     {
       "RawLog Field Name": "properties.SHA256",
@@ -135,7 +135,7 @@ export const sample_res = {
       Logic: null,
       "LLM Reasoning":
         "The raw log field 'properties.InitiatingProcessIntegrityLevel' describes the integrity level of the process, a Windows-specific security feature. There is no direct equivalent in the UDM for this field. Therefore, it is best mapped to 'additional.fields' to preserve the information without losing context.",
-      "Confidence Score": 85,
+      "Confidence Score": 55,
     },
     {
       "RawLog Field Name": "properties.InitiatingProcessTokenElevation",
@@ -184,7 +184,7 @@ export const sample_res = {
       Logic: null,
       "LLM Reasoning":
         "The raw log field 'properties.InitiatingProcessVersionInfoCompanyName' contains the company name from the version information of the process. There is no specific UDM field for this information. Therefore, it is best mapped to 'additional.fields' to ensure the data is not lost.",
-      "Confidence Score": 80,
+      "Confidence Score": 30,
     },
     {
       "RawLog Field Name": "properties.InitiatingProcessVersionInfoProductName",
@@ -192,7 +192,7 @@ export const sample_res = {
       Logic: null,
       "LLM Reasoning":
         "The raw log field 'properties.InitiatingProcessVersionInfoProductName' holds the product name from the version information of the process. As there is no dedicated UDM field for this, mapping it to 'additional.fields' is the most suitable option to preserve the information.",
-      "Confidence Score": 80,
+      "Confidence Score": 60,
     },
     {
       "RawLog Field Name": "properties.InitiatingProcessVersionInfoProductVersion",
