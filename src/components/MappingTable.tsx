@@ -31,6 +31,9 @@ import {
   type MRT_ColumnDef,
 } from "material-react-table";
 
+
+import FeedbackSection from "./FeedbackSection";
+
 interface Column {
   key: string;
   name: string;
@@ -46,19 +49,19 @@ interface MappingTableProps {
 const getConfidenceStatus = (score: number) => {
   if (score >= 70) {
     return {
-      label: "High Confidence",
+      label: "High",
       color: "#10b981" as const, // Green
       bgColor: "#d1fae5" as const,
     };
   } else if (score >= 50) {
     return {
-      label: "Partial Confidence",
+      label: "Medium",
       color: "#f59e0b" as const, // Yellow/Orange
       bgColor: "#fef3c7" as const,
     };
   } else {
     return {
-      label: "Low Confidence",
+      label: "Low",
       color: "#ef4444" as const, // Red
       bgColor: "#fee2e2" as const,
     };
@@ -204,7 +207,7 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
 
   return (
     <>
-      <Box sx={{ py: 2, px: 3 }} onClick={(e) => e.stopPropagation()}> {/* Reduced padding */}
+      <Box sx={{ p: 2, }} onClick={(e) => e.stopPropagation()}> {/* Reduced padding */}
         {/* First Row: Gauge + Product/UDM Stack */}
 
         <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2 }}>
@@ -262,7 +265,7 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
                     </IconButton>
                   </Tooltip>
                 </Box>
-                <Typography variant="body2" sx={{ fontFamily: "Geist Mono", fontWeight: 600, color: "#8b5cf6", wordBreak: "break-all", lineHeight: 1.5, fontSize: "0.9rem" }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: "#8b5cf6", wordBreak: "break-all", lineHeight: 1.5, fontSize: "0.9rem" }}>
                   {productField}
                 </Typography>
               </Paper>
@@ -294,7 +297,7 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
                     </IconButton>
                   </Tooltip>
                 </Box>
-                <Typography variant="body2" sx={{ fontFamily: "Geist Mono", fontWeight: 600, color: "#8b5cf6", wordBreak: "break-all", lineHeight: 1.5, fontSize: "0.9rem" }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: "#8b5cf6", wordBreak: "break-all", lineHeight: 1.5, fontSize: "0.9rem" }}>
                   {udmField}
                 </Typography>
               </Paper>
@@ -322,13 +325,11 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
               </Typography>
               <Box sx={{ position: "relative", zIndex: 1 }}>
                 <Box sx={{ p: 1.5, borderRadius: 1, border: "1px dashed #cbd5e1" }}>
-                  <Typography variant="caption" sx={{ fontFamily: "Geist Mono", display: "block", fontSize: "0.8rem" }}>
+                  <Typography variant="caption" sx={{ display: "block", fontSize: "0.8rem" }}>
                     {logic}
                   </Typography>
                 </Box>
               </Box>
-              {/* Decorative gradient blob */}
-              <Box sx={{ position: "absolute", top: -20, right: -20, width: 80, height: 80, borderRadius: "50%", bgcolor: alpha("#06b6d4", 0.1), zIndex: 0 }} />
             </Paper>
           )}
 
@@ -349,12 +350,10 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
               AI Reasoning
             </Typography>
             <Box sx={{ position: "relative", zIndex: 1 }}>
-              <Typography variant="body2" sx={{ fontFamily: "Geist Mono", color: "text.secondary", lineHeight: 1.5, fontSize: "0.85rem" }}>
+              <Typography variant="body2" sx={{ color: "text.secondary", lineHeight: 1.5, fontSize: "0.8rem", fontWeight: 500, }}>
                 {llmReasoning}
               </Typography>
             </Box>
-            {/* Decorative gradient blob */}
-            <Box sx={{ position: "absolute", top: -20, right: -20, width: 80, height: 80, borderRadius: "50%", bgcolor: alpha("#06b6d4", 0.1), zIndex: 0 }} />
           </Paper>
 
           {/* Widget 5: Feedback / Filters */}
@@ -486,7 +485,7 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
                         },
                         "&:disabled": {
                           bgcolor: "action.disabledBackground",
-                          color: "action.disabled"
+                          color: "#ced1d7ac" // Light grey for better visibility when disabled
                         }
                       }}
                     >
@@ -524,7 +523,7 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
 
           return {
             accessorKey: col.key,
-            header: col.name,
+            header: isConfidenceScore ? "Confidence" : col.name, // Rename "Confidence Score" to "Confidence"
             size: 200,
             enableSorting: isConfidenceScore, // Enable sorting only for Confidence Score
             enableColumnFilter: isConfidenceScore, // Enable filtering only for Confidence Score
@@ -567,7 +566,12 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
                 <Typography
                   variant="body2"
                   noWrap
-                  sx={{ maxWidth: 200, display: "block", color: "text.primary" }}
+                  sx={{
+                    maxWidth: 200,
+                    display: "block",
+                    color: "text.primary",
+                    letterSpacing: "-0.01em" // Reduce spacing between characters
+                  }}
                   title={String(value || "")}
                 >
                   {String(value || "")}
@@ -640,12 +644,15 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
       sx: {
         fontSize: "0.8rem", // Smaller font size for table cells
         py: 1, // Reduced vertical padding
+        paddingLeft: 1.5, // Left padding to prevent sticking to boundary
+        paddingRight: 0.5, // Minimal right padding for tight column spacing
       },
     },
     muiTableBodyRowProps: ({ row }) => ({
       sx: {
         cursor: "pointer",
         transition: "all 0.2s ease",
+        bgcolor: "background.paper", // Match header background color
         "&:hover": {
           bgcolor: alpha(theme.palette.primary.main, 0.04),
         },
@@ -720,6 +727,8 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
         position: "sticky",
         top: 0,
         zIndex: 1,
+        paddingLeft: 1.5, // Left padding to align with body cells
+        paddingRight: 0.5, // Minimal right padding for tight column spacing
       },
     },
     renderEmptyRowsFallback: () => (
@@ -789,6 +798,7 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
           </Button>
         )}
       </Box>
+
     ),
   });
 

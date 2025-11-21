@@ -303,7 +303,7 @@ const Dashboard = () => {
                 },
               }}
             >
-              <Tab
+              {/* <Tab
                 icon={<Psychology sx={{ fontSize: { xs: 24, md: 24 } }} />}
                 iconPosition={"start"}
                 label={
@@ -342,7 +342,7 @@ const Dashboard = () => {
                     )}
                   </Box>
                 }
-              />
+              /> */}
               <Tab
                 icon={<AccountTree sx={{ fontSize: { xs: 24, md: 24 } }} />}
                 iconPosition={"start"}
