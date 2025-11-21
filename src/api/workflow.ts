@@ -442,3 +442,60 @@ export const uploadMapping = async (
     return null;
   }
 };
+
+export const submitGenericFeedback = async (
+  feedback: string
+): Promise<boolean> => {
+  try {
+    const response = await fetch(
+      `${API_CONFIG.BASE_URL}/${API_CONFIG.ENDPOINTS.GENERIC_FEEDBACK}`,
+      {
+        method: "POST",
+        headers: {
+          ...getAuthHeader(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ "thread_id": "replace with stored thread id", "feedback": feedback }),
+      }
+    );
+
+    if (!response.ok) {
+      // Handle 401 specially for unauthorized access
+      if (response.status === 401) {
+        handleUnauthorized();
+      }
+
+      // Try to parse error message from backend response
+      let errorMessage = `Request failed with status ${response.status}`;
+
+      try {
+        const errorData = await response.json();
+        // Use the error message from backend if available
+        errorMessage = errorData?.message || errorData?.error || errorData?.detail || errorMessage;
+      } catch (parseError) {
+        // If parsing fails, try to get text response
+        try {
+          const errorText = await response.text();
+          if (errorText) {
+            errorMessage = errorText;
+          }
+        } catch {
+          // Keep the default error message if both parsing attempts fail
+        }
+      }
+
+      console.error("HTTP Error:", response.status, errorMessage);
+      toast.error(errorMessage);
+      return false;
+    }
+
+    toast.success("Feedback submitted successfully to backend!");
+    return true;
+  } catch (e: unknown) {
+    const errorMessage = (e as { message: string })?.message || "Failed to submit feedback!";
+    console.error("Feedback submission error:", errorMessage, e);
+    toast.error(errorMessage);
+    return false;
+  }
+};
+

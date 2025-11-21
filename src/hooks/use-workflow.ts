@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { startWorkflow, resumeWorkflow, generateConf, getMappingDoc, uploadMapping } from "@/api/workflow";
+import { startWorkflow, resumeWorkflow, generateConf, getMappingDoc, uploadMapping, submitGenericFeedback } from "@/api/workflow";
 import {
   WorkflowResponse,
   ResumeWorkflowPayload,
@@ -96,6 +96,20 @@ export const useUploadMapping = () => {
     },
     onError: (error) => {
       toast.error(error.message || "Failed to upload mapping");
+    },
+  });
+};
+
+/**
+ * Hook for submitting generic feedback
+ */
+export const useSubmitFeedback = () => {
+  return useMutation<boolean, Error, string>({
+    mutationFn: async (feedback) => {
+      return await submitGenericFeedback(feedback);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to submit feedback");
     },
   });
 };

@@ -4,18 +4,21 @@ import Drawer from "@mui/material/Drawer";
 import { Typography, IconButton, TextField, Button, Divider } from "@mui/material";
 import { Close, Send } from "@mui/icons-material";
 import { useDrawer } from "@/contexts/DrawerContext";
-import { toast } from "sonner";
+import { useSubmitFeedback } from "@/hooks/use-workflow";
 
 const ReleaseNotesDrawer = ({ note }: { note: string }) => {
   const { open, toggleDrawer } = useDrawer();
   const [feedback, setFeedback] = useState("");
+  const { mutate: submitFeedback, isPending } = useSubmitFeedback();
 
   const handleSubmitFeedback = () => {
     if (!feedback.trim()) return;
 
-    // In a real app, this would send data to backend
-    toast.success("Feedback submitted successfully!");
-    setFeedback("");
+    submitFeedback(feedback, {
+      onSuccess: () => {
+        setFeedback("");
+      },
+    });
   };
 
   return (
@@ -125,7 +128,7 @@ const ReleaseNotesDrawer = ({ note }: { note: string }) => {
                 variant="contained"
                 fullWidth
                 onClick={handleSubmitFeedback}
-                disabled={!feedback.trim()}
+                disabled={!feedback.trim() || isPending}
                 endIcon={<Send />}
                 sx={{
                   mt: 2,
@@ -137,7 +140,7 @@ const ReleaseNotesDrawer = ({ note }: { note: string }) => {
                   }
                 }}
               >
-                Submit Feedback
+                {isPending ? "Submitting..." : "Submit Feedback"}
               </Button>
             </Box>
           </Box>

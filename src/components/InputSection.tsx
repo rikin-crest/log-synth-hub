@@ -52,13 +52,13 @@ const productOptions: ProductOption[] = [
 
 const mappingSchemaOptions: MappingSchemaOptions[] = [
   { label: "UDM", value: "udm" },
-  { label: "OCSF", value: "OCSF" },
+  { label: "OCSF", value: "ocsf" },
 ];
 
 // Product to log category mapping
 const productLogCategories: Record<string, string[]> = {
   microsoft_defender: [
-    "DeviceLogonEvents",
+    "device_image_load_events",
     "DeviceImageLoadEvents",
     "EmailEvents",
     "EmailPostDeliveryEvents",
@@ -489,7 +489,7 @@ const InputSection = ({
           </Select>
         </FormControl>
       </Box>
-      {/* <Box>
+      <Box>
         <Button
           variant="outlined"
           component="label"
@@ -549,7 +549,7 @@ const InputSection = ({
             <Close sx={{ fontSize: 18 }} />
           </Button>
         )}
-      </Box> */}
+      </Box>
 
       {/* Button at the bottom */}
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>

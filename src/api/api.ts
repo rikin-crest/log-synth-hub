@@ -9,5 +9,6 @@ export const API_CONFIG = {
     LOGIN: "api/v1/login",
     GET_MAPPING_DOC: "api/v1/get_mapping_document",
     UPLOAD_MAPPING: "api/v1/upload_mapping",
+    GENERIC_FEEDBACK: "api/v1/generic_feedback"
   },
 };
