@@ -402,7 +402,7 @@ const ChainOfThoughts = ({
         }}
       >
         <Psychology sx={{ fontSize: 64, mb: 2, opacity: 0.3 }} />
-        <Typography variant="body1">COT will appear here during processing</Typography>
+        <Typography variant="body1">Sources used for mapping will appear here</Typography>
       </Box>
     );
   }

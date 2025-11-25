@@ -11,12 +11,12 @@ import {
   alpha,
   CircularProgress,
   Grid,
-  Snackbar,
-  Autocomplete,
-  TextField,
   Chip,
   Divider,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
+import { toast } from "sonner";
 import {
   Download,
   InfoOutlined,
@@ -24,13 +24,13 @@ import {
   RadioButtonUnchecked,
   ContentCopy,
   TableChart,
+  Search,
 } from "@mui/icons-material";
 import {
   MaterialReactTable,
   useMaterialReactTable,
   type MRT_ColumnDef,
 } from "material-react-table";
-
 
 import FeedbackSection from "./FeedbackSection";
 
@@ -43,6 +43,11 @@ interface MappingTableProps {
   data: Record<string, unknown>[];
   columns: Column[];
   loading?: boolean;
+  onUpdateRow?: (index: number, newValues: Record<string, unknown>) => void;
+  onRerun: (feedback: string) => void;
+  onConfGenerate: () => void;
+  feedbackDisabled: boolean;
+  disableMappingDoc: boolean;
 }
 
 // Helper function to get confidence status
@@ -183,36 +188,79 @@ const ScoreGauge = ({ score, color }: { score: number; color: string }) => {
 };
 
 // Expandable content component
-const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
+const ExpandedRowContent = ({
+  row,
+  columns,
+  rowIndex,
+  onUpdateRow,
+  closeRow,
+}: {
+  row: Record<string, unknown>;
+  columns: Column[];
+  rowIndex: number;
+  onUpdateRow?: (index: number, newValues: Record<string, unknown>) => void;
+  closeRow: () => void;
+}) => {
+  if (!row) return null;
+
   const [selectedPrediction, setSelectedPrediction] = useState<string | null>(null);
   const [manualFieldSelection, setManualFieldSelection] = useState<string | null>(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
+  // Dynamically extract field keys from columns
+  const rawLogFieldKey =
+    columns.find(
+      (col) =>
+        col.key.toLowerCase().includes("rawlog") ||
+        col.key.toLowerCase().includes("raw") ||
+        col.key.toLowerCase().includes("field")
+    )?.key || "RawLog Field Name";
+  const udmFieldKey =
+    columns.find((col) => col.key.toLowerCase().includes("udm"))?.key || "UDM Field Name";
+  const logicKey = columns.find((col) => col.key.toLowerCase().includes("logic"))?.key || "Logic";
+  const llmReasoningKey =
+    columns.find((col) => col.key.toLowerCase().includes("reasoning"))?.key || "LLM Reasoning";
+  const confidenceScoreKey =
+    columns.find((col) => col.key.toLowerCase().includes("confidence"))?.key || "Confidence Score";
 
-  // Extract values
-  const productField = String(row["RawLog Field Name"] || "N/A");
-  const udmField = String(row["UDM Field Name"] || "N/A");
-  const logic = String(row["Logic"] || "N/A");
-  const llmReasoning = String(row["LLM Reasoning"] || "N/A");
-  const confidenceScore = Number(row["Confidence Score"] || 0);
+  // Extract values using dynamic keys
+  const productField = String(row[rawLogFieldKey] || "N/A");
+  const udmField = String(row[udmFieldKey] || "N/A");
+  const logic = String(row[logicKey] || "N/A");
+  const llmReasoning = String(row[llmReasoningKey] || "N/A");
+  const confidenceScore = Number(row[confidenceScoreKey] || 0);
+
+  // Get display names from columns
+  const rawLogFieldName =
+    columns.find((col) => col.key === rawLogFieldKey)?.name || "Product Field";
+  const udmFieldName = columns.find((col) => col.key === udmFieldKey)?.name || "UDM Field";
 
   // Determine status color for the gauge using the shared helper
-  const status = getConfidenceStatus(confidenceScore);
+  const status = getConfidenceStatus(confidenceScore) || {
+    label: "Unknown",
+    color: "#9ca3af",
+    bgColor: "#f3f4f6",
+  };
   const statusColor = status.color;
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
-    setSnackbarOpen(true);
+    toast.success("Copied to clipboard");
   };
 
   return (
     <>
-      <Box sx={{ p: 2, }} onClick={(e) => e.stopPropagation()}> {/* Reduced padding */}
+      <Box
+        sx={{ p: 2, width: "100%", boxSizing: "border-box" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {" "}
+        {/* Reduced padding */}
         {/* First Row: Gauge + Product/UDM Stack */}
-
         <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2 }}>
           {/* Widget 1: Confidence Gauge */}
-          <Box sx={{ flex: { xs: "1 1 100%", md: "0 0 20%" }, minWidth: 0 }}> {/* Reduced from 25% to 20% */}
+          <Box sx={{ flex: { xs: "1 1 100%", md: "0 0 20%" }, minWidth: 0 }}>
+            {" "}
+            {/* Reduced from 25% to 20% */}
             <Paper
               elevation={0}
               sx={{
@@ -228,7 +276,16 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
                 boxSizing: "border-box",
               }}
             >
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, width: "100%", textAlign: "center", fontSize: "0.85rem" }}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontWeight: 600,
+                  mb: 1,
+                  width: "100%",
+                  textAlign: "center",
+                  fontSize: "0.85rem",
+                }}
+              >
                 Confidence Score
               </Typography>
               <ScoreGauge score={confidenceScore} color={statusColor} />
@@ -237,7 +294,9 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
 
           {/* Widget 2 & 3: Mapping Details Stacked */}
           <Box sx={{ flex: { xs: "1 1 100%", md: "1 1 auto" }, minWidth: 0 }}>
-            <Stack spacing={1.5} sx={{ height: "100%", width: "100%" }}> {/* Reduced spacing */}
+            <Stack spacing={1.5} sx={{ height: "100%", width: "100%" }}>
+              {" "}
+              {/* Reduced spacing */}
               {/* Product Field (Source) */}
               <Paper
                 elevation={0}
@@ -255,21 +314,43 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
                   boxSizing: "border-box",
                 }}
               >
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 0 }}>
-                  <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, fontSize: "0.85rem" }}>
-                    Product Field (Source)
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    mb: 0,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "text.secondary", fontWeight: 600, fontSize: "0.85rem" }}
+                  >
+                    {rawLogFieldName} (Source)
                   </Typography>
                   <Tooltip title="Copy">
-                    <IconButton size="small" onClick={() => handleCopy(productField)} sx={{ p: 0.5 }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleCopy(productField)}
+                      sx={{ p: 0.5 }}
+                    >
                       <ContentCopy fontSize="small" sx={{ fontSize: 12 }} />
                     </IconButton>
                   </Tooltip>
                 </Box>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: "#8b5cf6", wordBreak: "break-all", lineHeight: 1.5, fontSize: "0.9rem" }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                    color: "#8b5cf6",
+                    wordBreak: "break-all",
+                    lineHeight: 1.5,
+                    fontSize: "0.9rem",
+                  }}
+                >
                   {productField}
                 </Typography>
               </Paper>
-
               {/* UDM Field (Target) */}
               <Paper
                 elevation={0}
@@ -287,9 +368,19 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
                   boxSizing: "border-box",
                 }}
               >
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 0 }}>
-                  <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, fontSize: "0.85rem" }}>
-                    UDM Field (Target)
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    mb: 0,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "text.secondary", fontWeight: 600, fontSize: "0.85rem" }}
+                  >
+                    {udmFieldName} (Target)
                   </Typography>
                   <Tooltip title="Copy">
                     <IconButton size="small" onClick={() => handleCopy(udmField)} sx={{ p: 0.5 }}>
@@ -297,16 +388,26 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
                     </IconButton>
                   </Tooltip>
                 </Box>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: "#8b5cf6", wordBreak: "break-all", lineHeight: 1.5, fontSize: "0.9rem" }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                    color: "#8b5cf6",
+                    wordBreak: "break-all",
+                    lineHeight: 1.5,
+                    fontSize: "0.9rem",
+                  }}
+                >
                   {udmField}
                 </Typography>
               </Paper>
             </Stack>
           </Box>
         </Box>
-
         {/* Remaining Items in Stack */}
-        <Stack spacing={2} sx={{ mt: 2 }}> {/* Reduced spacing */}
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          {" "}
+          {/* Reduced spacing */}
           {/* Widget 4a: Logic */}
           {logic !== "N/A" && (
             <Paper
@@ -317,7 +418,7 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
                 borderRadius: "12px",
                 boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.05)",
                 overflow: "hidden",
-                position: "relative"
+                position: "relative",
               }}
             >
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, fontSize: "0.85rem" }}>
@@ -332,7 +433,6 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
               </Box>
             </Paper>
           )}
-
           {/* Widget 4b: AI Reasoning */}
           <Paper
             elevation={0}
@@ -343,19 +443,26 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
               boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.05)",
               // bgcolor: "#fff",
               overflow: "hidden",
-              position: "relative"
+              position: "relative",
             }}
           >
             <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, fontSize: "0.85rem" }}>
               AI Reasoning
             </Typography>
             <Box sx={{ position: "relative", zIndex: 1 }}>
-              <Typography variant="body2" sx={{ color: "text.secondary", lineHeight: 1.5, fontSize: "0.8rem", fontWeight: 500, }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "text.secondary",
+                  lineHeight: 1.5,
+                  fontSize: "0.8rem",
+                  fontWeight: 500,
+                }}
+              >
                 {llmReasoning}
               </Typography>
             </Box>
           </Paper>
-
           {/* Widget 5: Feedback / Filters */}
           <Paper
             elevation={0}
@@ -366,7 +473,14 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
               boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.05)",
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                mb: 1.5,
+              }}
+            >
               <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "0.85rem" }}>
                 Refine Mapping
               </Typography>
@@ -378,56 +492,100 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
             <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 3 }}>
               {/* Left: Suggested Alternatives */}
               <Box sx={{ flex: 1 }}>
-                <Typography variant="caption" sx={{ color: "text.secondary", mb: 1.5, display: "block", fontWeight: 600, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "text.secondary",
+                    mb: 1.5,
+                    display: "block",
+                    fontWeight: 600,
+                    fontSize: "0.7rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
                   Recommended
                 </Typography>
                 <Stack spacing={1}>
-                  {MOCK_PREDICTED_FIELDS.map((field) => (
-                    <Box
-                      key={field}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (selectedPrediction === field) {
-                          setSelectedPrediction(null);
-                        } else {
-                          setSelectedPrediction(field);
-                          setManualFieldSelection(null); // Clear manual selection if selecting a suggestion
-                        }
-                      }}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        p: 1.5,
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        bgcolor: selectedPrediction === field ? alpha("#8b5cf6", 0.08) : "transparent",
-                        border: "1px solid",
-                        borderColor: selectedPrediction === field ? "#8b5cf6" : "divider",
-                        "&:hover": {
-                          bgcolor: alpha("#8b5cf6", 0.04),
-                          borderColor: selectedPrediction === field ? "#8b5cf6" : "text.disabled",
-                        },
-                      }}
-                    >
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: selectedPrediction === field ? "#8b5cf6" : "text.primary", fontSize: "0.8rem" }}>
-                        {field}
-                      </Typography>
-                      {selectedPrediction === field && (
-                        <CheckCircle sx={{ fontSize: 18, color: "#8b5cf6" }} />
-                      )}
-                    </Box>
-                  ))}
+                  {(
+                    (row["Predicted Keys"] as Array<{
+                      "UDM Field Name": string;
+                      "LLM Reasoning": string;
+                    }>) || []
+                  ).map((predictedKey) => {
+                    const field = predictedKey["UDM Field Name"];
+                    return (
+                      <Box
+                        key={field}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (selectedPrediction === field) {
+                            setSelectedPrediction(null);
+                          } else {
+                            setSelectedPrediction(field);
+                            setManualFieldSelection(null); // Clear manual selection if selecting a suggestion
+                          }
+                        }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          p: 1.5,
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                          bgcolor:
+                            selectedPrediction === field ? alpha("#8b5cf6", 0.08) : "transparent",
+                          border: "1px solid",
+                          borderColor: selectedPrediction === field ? "#8b5cf6" : "divider",
+                          "&:hover": {
+                            bgcolor: alpha("#8b5cf6", 0.04),
+                            borderColor: selectedPrediction === field ? "#8b5cf6" : "text.disabled",
+                          },
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontSize: "0.8rem",
+                            fontWeight: selectedPrediction === field ? 600 : 400,
+                            color: selectedPrediction === field ? "#8b5cf6" : "text.primary",
+                          }}
+                        >
+                          {field}
+                        </Typography>
+                        {selectedPrediction === field ? (
+                          <CheckCircle sx={{ color: "#8b5cf6", fontSize: 18 }} />
+                        ) : (
+                          <RadioButtonUnchecked sx={{ color: "text.disabled", fontSize: 18 }} />
+                        )}
+                      </Box>
+                    );
+                  })}
                 </Stack>
               </Box>
 
               {/* Divider */}
-              <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", md: "block" } }} />
+              <Divider
+                orientation="vertical"
+                flexItem
+                sx={{ display: { xs: "none", md: "block" } }}
+              />
 
               {/* Right: Manual Override */}
               <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                <Typography variant="caption" sx={{ color: "text.secondary", mb: 1.5, display: "block", fontWeight: 600, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "text.secondary",
+                    mb: 1.5,
+                    display: "block",
+                    fontWeight: 600,
+                    fontSize: "0.7rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
                   Custom Selection
                 </Typography>
                 <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
@@ -459,7 +617,7 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         bgcolor: "background.paper",
-                      }
+                      },
                     }}
                   />
 
@@ -470,6 +628,20 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
                       onClick={(e) => {
                         e.stopPropagation();
                         // Handle apply logic here
+                        const newValue = selectedPrediction || manualFieldSelection;
+                        if (newValue && onUpdateRow) {
+                          onUpdateRow(rowIndex, {
+                            [udmFieldKey]: newValue,
+                            [llmReasoningKey]: "Manually overridden by user",
+                          });
+                          toast.success("Changes applied");
+                          // Reset selections to default
+                          setSelectedPrediction(null);
+                          setManualFieldSelection(null);
+                          // setTimeout(() => {
+                          //   closeRow();
+                          // }, 500);
+                        }
                       }}
                       sx={{
                         borderRadius: "8px",
@@ -485,8 +657,8 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
                         },
                         "&:disabled": {
                           bgcolor: "action.disabledBackground",
-                          color: "#ced1d7ac" // Light grey for better visibility when disabled
-                        }
+                          color: "#ced1d7ac", // Light grey for better visibility when disabled
+                        },
                       }}
                     >
                       Apply Changes
@@ -498,90 +670,111 @@ const ExpandedRowContent = ({ row }: { row: Record<string, unknown> }) => {
           </Paper>
         </Stack>
       </Box>
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={2000}
-        onClose={() => setSnackbarOpen(false)}
-        message="Copied to clipboard"
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      />
     </>
   );
 };
 
-const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => {
+const MappingTable = ({
+  data,
+  columns,
+  loading = false,
+  onUpdateRow,
+  onRerun,
+  onConfGenerate,
+  feedbackDisabled,
+  disableMappingDoc,
+}: MappingTableProps) => {
   const [globalFilter, setGlobalFilter] = useState("");
   const theme = useTheme();
 
   // Define columns for Material React Table
-  const tableColumns = useMemo<MRT_ColumnDef<Record<string, unknown>>[]>(
-    () =>
-      columns
-        .filter((col) => col.key !== "LLM Reasoning") // Hide LLM Reasoning column
-        .map((col) => {
-          const isConfidenceScore = col.key === "Confidence Score";
+  const tableColumns = useMemo<MRT_ColumnDef<Record<string, unknown>>[]>(() => {
+    const visibleColumns = columns.filter(
+      (col) => col.key !== "LLM Reasoning" && col.key !== "Predicted Keys"
+    ); // Hide LLM Reasoning and Predicted Keys columns
 
-          return {
-            accessorKey: col.key,
-            header: isConfidenceScore ? "Confidence" : col.name, // Rename "Confidence Score" to "Confidence"
-            size: 200,
-            enableSorting: isConfidenceScore, // Enable sorting only for Confidence Score
-            enableColumnFilter: isConfidenceScore, // Enable filtering only for Confidence Score
-            filterVariant: isConfidenceScore ? 'multi-select' : undefined,
-            filterSelectOptions: isConfidenceScore
-              ? ['High Confidence', 'Partial Confidence', 'Low Confidence']
-              : undefined,
-            filterFn: isConfidenceScore ? (row, id, filterValue) => {
+    // Check if Logic column exists
+    const hasLogicColumn = visibleColumns.some((col) => col.key.toLowerCase() === "logic");
+    const totalColumns = visibleColumns.length;
+
+    // Calculate column sizes: Logic gets 40%, others get 20% each
+    let logicColumnSize = 400; // 40%
+    let otherColumnSize = 200; // 20%
+
+    if (!hasLogicColumn) {
+      // If no logic column, divide equally
+      otherColumnSize = Math.floor(1000 / totalColumns);
+    }
+
+    return visibleColumns.map((col) => {
+      const isConfidenceScore = col.key.toLowerCase().includes("confidence");
+      const isLogicColumn = col.key.toLowerCase() === "logic";
+
+      return {
+        accessorKey: col.key,
+        header: isConfidenceScore ? "Confidence" : col.name, // Rename "Confidence Score" to "Confidence"
+        size: isLogicColumn ? logicColumnSize : otherColumnSize,
+        minSize: isLogicColumn ? 250 : 100,
+        maxSize: isLogicColumn ? 500 : 300,
+        enableSorting: !isConfidenceScore, // Enable sorting for all columns except Confidence
+        enableGrouping: false, // Disable grouping for all columns including Confidence
+        enableColumnActions: isConfidenceScore, // Enable column actions only for Confidence Score
+        enableColumnFilter: isConfidenceScore, // Enable filtering only for Confidence Score
+        filterVariant: isConfidenceScore ? "multi-select" : undefined,
+        filterSelectOptions: isConfidenceScore ? ["High", "Medium", "Low"] : undefined,
+        filterFn: isConfidenceScore
+          ? (row, id, filterValue) => {
               if (!filterValue || filterValue.length === 0) return true;
               const score = Number(row.getValue(id) || 0);
               const status = getConfidenceStatus(score);
               return filterValue.includes(status.label);
-            } : undefined,
-            Cell: ({ cell }) => {
-              const value = cell.getValue();
+            }
+          : undefined,
+        Cell: ({ cell }) => {
+          const value = cell.getValue();
 
-              if (isConfidenceScore) {
-                const confidenceScore = Number(value || 0);
-                const status = getConfidenceStatus(confidenceScore);
+          if (isConfidenceScore) {
+            const confidenceScore = Number(value || 0);
+            const status = getConfidenceStatus(confidenceScore);
 
-                return (
-                  <Chip
-                    label={status.label}
-                    size="small"
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: "0.75rem",
-                      color: status.color,
-                      bgcolor: status.bgColor,
-                      border: `1px solid ${status.color}`,
-                      "& .MuiChip-label": {
-                        px: 1.5,
-                      },
-                    }}
-                  />
-                );
-              }
+            return (
+              <Chip
+                label={status.label}
+                size="small"
+                sx={{
+                  fontWeight: 600,
+                  fontSize: "0.75rem",
+                  color: status.color,
+                  bgcolor: status.bgColor,
+                  border: `1px solid ${status.color}`,
+                  "& .MuiChip-label": {
+                    px: 1.5,
+                  },
+                }}
+              />
+            );
+          }
 
-              return (
-                <Typography
-                  variant="body2"
-                  noWrap
-                  sx={{
-                    maxWidth: 200,
-                    display: "block",
-                    color: "text.primary",
-                    letterSpacing: "-0.01em" // Reduce spacing between characters
-                  }}
-                  title={String(value || "")}
-                >
-                  {String(value || "")}
-                </Typography>
-              );
-            },
-          };
-        }),
-    [columns, theme]
-  );
+          return (
+            <Typography
+              variant="body2"
+              sx={{
+                display: "block",
+                color: "text.primary",
+                letterSpacing: "-0.01em",
+                whiteSpace: "normal",
+                wordBreak: "break-word",
+                overflowWrap: "break-word",
+              }}
+              title={String(value || "")}
+            >
+              {String(value || "")}
+            </Typography>
+          );
+        },
+      };
+    });
+  }, [columns]);
 
   const exportToCsv = () => {
     if (data.length === 0) return;
@@ -614,17 +807,23 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
   const table = useMaterialReactTable({
     columns: tableColumns,
     data,
+    // layoutMode: "grid", // Removed to fix detail panel width issue
+    enableColumnResizing: false, // Disable column resizing
+    defaultColumn: {
+      minSize: 100,
+      maxSize: 500,
+    },
     enableExpanding: true,
     enableExpandAll: false,
     getRowId: (row, index) => String(index),
     displayColumnDefOptions: {
-      'mrt-row-expand': {
+      "mrt-row-expand": {
         size: 0,
         minSize: 0,
         maxSize: 0,
         muiTableHeadCellProps: {
           sx: {
-            display: 'none',
+            display: "none",
             width: 0,
             minWidth: 0,
             padding: 0,
@@ -632,7 +831,7 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
         },
         muiTableBodyCellProps: {
           sx: {
-            display: 'none',
+            display: "none",
             width: 0,
             minWidth: 0,
             padding: 0,
@@ -642,10 +841,14 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
     },
     muiTableBodyCellProps: {
       sx: {
-        fontSize: "0.8rem", // Smaller font size for table cells
-        py: 1, // Reduced vertical padding
-        paddingLeft: 1.5, // Left padding to prevent sticking to boundary
-        paddingRight: 0.5, // Minimal right padding for tight column spacing
+        fontSize: "0.8rem",
+        py: 1,
+        paddingLeft: 1.5,
+        overflow: "hidden",
+        textOverflow: "clip",
+        wordBreak: "break-word",
+        whiteSpace: "normal",
+        verticalAlign: "top",
       },
     },
     muiTableBodyRowProps: ({ row }) => ({
@@ -659,17 +862,32 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
       },
       onClick: () => row.toggleExpanded(),
     }),
-    renderDetailPanel: ({ row }) => <ExpandedRowContent row={row.original} />,
+
+    muiDetailPanelProps: {
+      sx: {
+        width: "100%",
+        padding: 0,
+      },
+    },
+    renderDetailPanel: ({ row }) => (
+      <ExpandedRowContent
+        row={row.original}
+        columns={columns}
+        rowIndex={row.index}
+        onUpdateRow={onUpdateRow}
+        closeRow={() => row.toggleExpanded(false)}
+      />
+    ),
     state: {
       globalFilter,
       isLoading: loading,
     },
     onGlobalFilterChange: setGlobalFilter,
     enableGlobalFilter: true,
-    enableColumnActions: false,
+    enableColumnActions: true, // Enable column actions (controlled per column)
     enableColumnFilters: true, // Enable column filters
-    enableSorting: false, // Disable global sorting
-    enableGrouping: false, // Disable grouping
+    enableSorting: true, // Enable sorting for columns
+    enableGrouping: false, // Disable grouping globally
     enableDensityToggle: false,
     enableFullScreenToggle: false,
     enableHiding: false,
@@ -679,8 +897,7 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
     muiTablePaperProps: {
       elevation: 0,
       sx: {
-        border: 1,
-        borderColor: "divider",
+        border: "none", // Remove border as it's now handled by the wrapper
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -693,7 +910,7 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
         flexGrow: 1,
         flexShrink: 1,
         minHeight: 0, // Allow container to shrink
-        maxHeight: "600px", // Set a max height
+        maxHeight: "100%", // Set a max height
         overflow: "auto",
         position: "relative", // Ensure proper positioning
       },
@@ -752,7 +969,7 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
       </Box>
     ),
     renderTopToolbarCustomActions: () => (
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <TableChart sx={{ color: "primary.main" }} />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -767,42 +984,96 @@ const MappingTable = ({ data, columns, loading = false }: MappingTableProps) => 
       </Box>
     ),
     renderToolbarInternalActions: () => (
-      <Box sx={{ display: "flex", gap: 1 }}>
+      <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
         {data.length > 0 && (
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={<Download sx={{ fontSize: 16 }} />}
-            onClick={exportToCsv}
-            sx={{
-              textTransform: "none",
-              fontWeight: 600,
-              px: 2,
-              py: 0.75,
-              borderRadius: 2,
-              fontSize: 14,
-              background: "linear-gradient(135deg, hsl(220, 70%, 55%), hsl(260, 85%, 60%))",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-              "& .MuiButton-startIcon": {
-                marginRight: 1,
-                marginLeft: 0,
-              },
-              "&:hover": {
-                background: "linear-gradient(135deg, hsl(220, 70%, 50%), hsl(260, 85%, 55%))",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-              },
-              transition: "all 0.2s ease-in-out",
-            }}
-          >
-            Export CSV
-          </Button>
+          <>
+            <TextField
+              placeholder="Search mappings..."
+              size="small"
+              value={globalFilter ?? ""}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              InputProps={{
+                startAdornment: <Search sx={{ fontSize: 18, color: "text.secondary", mr: 1 }} />,
+              }}
+              sx={{
+                minWidth: 250,
+                "& .MuiOutlinedInput-root": {
+                  fontSize: 14,
+                  borderRadius: 2,
+                  bgcolor: "background.paper",
+                  transition: "all 0.2s ease-in-out",
+                  "&:hover": {
+                    bgcolor: alpha(theme.palette.primary.main, 0.02),
+                  },
+                  "&.Mui-focused": {
+                    bgcolor: "background.paper",
+                    boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.1)}`,
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  py: 0.875,
+                },
+              }}
+            />
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<Download sx={{ fontSize: 16 }} />}
+              onClick={exportToCsv}
+              sx={{
+                textTransform: "none",
+                fontWeight: 600,
+                px: 2,
+                py: 0.75,
+                borderRadius: 2,
+                fontSize: 14,
+                background: "linear-gradient(135deg, hsl(220, 70%, 55%), hsl(260, 85%, 60%))",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                "& .MuiButton-startIcon": {
+                  marginRight: 1,
+                  marginLeft: 0,
+                },
+                "&:hover": {
+                  background: "linear-gradient(135deg, hsl(220, 70%, 50%), hsl(260, 85%, 55%))",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                },
+                transition: "all 0.2s ease-in-out",
+              }}
+            >
+              Export CSV
+            </Button>
+          </>
         )}
       </Box>
-
     ),
   });
 
-  return <MaterialReactTable table={table} />;
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        border: 1,
+        borderColor: "divider",
+        overflow: "hidden",
+      }}
+    >
+      <Box sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+        <MaterialReactTable table={table} />
+      </Box>
+      <Divider />
+      <Box sx={{ p: 2, bgcolor: "background.paper", flexShrink: 0 }}>
+        <FeedbackSection
+          onRerun={onRerun}
+          onConfGenerate={onConfGenerate}
+          disabled={feedbackDisabled}
+          disableMappingDoc={disableMappingDoc}
+        />
+      </Box>
+    </Paper>
+  );
 };
 
 export default MappingTable;

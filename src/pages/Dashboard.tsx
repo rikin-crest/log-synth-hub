@@ -2,7 +2,12 @@ import { useState, lazy, Suspense } from "react";
 import { Box, Typography, IconButton, Tabs, Tab } from "@mui/material";
 import { Settings, Psychology, AccountTree, Fullscreen } from "@mui/icons-material";
 import { toast } from "sonner";
-import { useStartWorkflow, useResumeWorkflow, useGenerateConf, useUploadMapping } from "../hooks/use-workflow";
+import {
+  useStartWorkflow,
+  useResumeWorkflow,
+  useGenerateConf,
+  useUploadMapping,
+} from "../hooks/use-workflow";
 import InputSection from "../components/InputSection";
 import { ThoughtStep, AgentThoughts } from "../components/types";
 
@@ -15,7 +20,6 @@ import NavigationBar from "@/components/NavigationBar";
 const ChainOfThoughts = lazy(() => import("../components/ChainOfThoughts"));
 const WorkflowGraph = lazy(() => import("../components/WorkflowGraph"));
 const MappingTable = lazy(() => import("../components/MappingTable"));
-const FeedbackSection = lazy(() => import("../components/FeedbackSection"));
 // const ReleaseNotes = lazy(() => import("../components/ReleaseNotes"));
 const ReleaseNotesDrawer = lazy(() => import("../components/ReleaseNotesDrawer"));
 
@@ -202,6 +206,14 @@ const Dashboard = () => {
     });
   };
 
+  const handleUpdateRow = (index: number, newValues: Record<string, unknown>) => {
+    setMappingData((prevData) => {
+      const newData = [...prevData];
+      newData[index] = { ...newData[index], ...newValues };
+      return newData;
+    });
+  };
+
   return (
     <Box
       sx={{
@@ -242,7 +254,7 @@ const Dashboard = () => {
             flexDirection: "column",
             width: { xs: "100%", md: "400px" },
             minWidth: { xs: "auto", md: "400px" },
-            minHeight: { xs: "auto", md: "600px" },
+            minHeight: 0,
             gap: 1,
             order: { xs: 1, md: 1 },
           }}
@@ -303,7 +315,7 @@ const Dashboard = () => {
                 },
               }}
             >
-              {/* <Tab
+              <Tab
                 icon={<Psychology sx={{ fontSize: { xs: 24, md: 24 } }} />}
                 iconPosition={"start"}
                 label={
@@ -321,7 +333,7 @@ const Dashboard = () => {
                         textAlign: { xs: "center", sm: "left" },
                       }}
                     >
-                      Thoughts
+                      Sources
                     </Typography>
                     {agentThoughts.length > 0 && (
                       <IconButton
@@ -342,7 +354,7 @@ const Dashboard = () => {
                     )}
                   </Box>
                 }
-              /> */}
+              />
               <Tab
                 icon={<AccountTree sx={{ fontSize: { xs: 24, md: 24 } }} />}
                 iconPosition={"start"}
@@ -406,7 +418,7 @@ const Dashboard = () => {
             flexDirection: "column",
             width: "100%",
             minWidth: { xs: "auto", md: "400px" },
-            minHeight: { xs: "auto", md: "600px" },
+            minHeight: 0,
             gap: 1,
             order: { xs: 2, md: 2 },
           }}
@@ -430,32 +442,15 @@ const Dashboard = () => {
                 <LoadingFallback message="Loading mapping table..." size={40} height="100%" />
               }
             >
-              <MappingTable
-                data={mappingData}
-                columns={getColumns(mappingData)}
-                loading={isProcessing}
-              />
-            </Suspense>
-          </Box>
-
-          {/* Feedback Section */}
-          <Box
-            sx={{
-              height: { xs: "100%", md: "120px" },
-              overflow: "visible",
-              width: "100%",
-            }}
-          >
-            <Suspense
-              fallback={
-                <LoadingFallback message="Loading feedback section..." size={28} height="100%" />
-              }
-            >
               <DrawerProvider>
-                <FeedbackSection
+                <MappingTable
+                  data={mappingData}
+                  columns={getColumns(mappingData)}
+                  loading={isProcessing}
+                  onUpdateRow={handleUpdateRow}
                   onRerun={handleRerun}
                   onConfGenerate={handleConfGenerate}
-                  disabled={mappingData.length === 0 || mappingSchema === "OCSF"}
+                  feedbackDisabled={mappingData.length === 0 || mappingSchema === "OCSF"}
                   disableMappingDoc={disableMappingDoc}
                 />
                 <ReleaseNotesDrawer note={releaseNote} />
