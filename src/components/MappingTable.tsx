@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -687,6 +687,54 @@ const MappingTable = ({
   const [globalFilter, setGlobalFilter] = useState("");
   const theme = useTheme();
 
+  // Dynamic pagination state
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10, // Initial default
+  });
+
+  // Calculate available rows based on container height
+  useEffect(() => {
+    const calculatePageSize = () => {
+      if (!tableContainerRef.current) return;
+
+      const containerHeight = tableContainerRef.current.clientHeight;
+      // Estimated heights:
+      // Header: ~56px
+      // Bottom Toolbar: ~52px (Reduced)
+      // Row: ~60px (compact mode with padding)
+      // Buffer: 20px
+      const availableHeight = containerHeight - 56 - 52 - 20;
+      const estimatedRowHeight = 60; // Approximate height of a row in compact mode
+
+      const newPageSize = Math.max(20, Math.floor(availableHeight / estimatedRowHeight));
+
+      setPagination((prev) => {
+        if (prev.pageSize !== newPageSize) {
+          return { ...prev, pageSize: newPageSize };
+        }
+        return prev;
+      });
+    };
+
+    // Initial calculation
+    calculatePageSize();
+
+    // Observe resize
+    const observer = new ResizeObserver(() => {
+      calculatePageSize();
+    });
+
+    if (tableContainerRef.current) {
+      observer.observe(tableContainerRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   // Define columns for Material React Table
   const tableColumns = useMemo<MRT_ColumnDef<Record<string, unknown>>[]>(() => {
     const visibleColumns = columns.filter(
@@ -881,7 +929,9 @@ const MappingTable = ({
     state: {
       globalFilter,
       isLoading: loading,
+      pagination,
     },
+    onPaginationChange: setPagination,
     onGlobalFilterChange: setGlobalFilter,
     enableGlobalFilter: true,
     enableColumnActions: true, // Enable column actions (controlled per column)
@@ -1060,7 +1110,7 @@ const MappingTable = ({
         overflow: "hidden",
       }}
     >
-      <Box sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <Box ref={tableContainerRef} sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
         <MaterialReactTable table={table} />
       </Box>
       <Divider />

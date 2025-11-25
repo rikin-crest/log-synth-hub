@@ -795,4 +795,36 @@ export const sample_res = {
       ],
     },
   ],
+  citations: [
+    {
+      id: "citation-1",
+      title: "UDM Schema Documentation",
+      source: "Documentation",
+      url: "https://cloud.google.com/chronicle/docs/reference/udm-field-list",
+    },
+    {
+      id: "citation-2",
+      title: "Microsoft Defender ATP Log Schema",
+      source: "Documentation",
+      url: "https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-atp/advanced-hunting-deviceprocessevents-table",
+    },
+    {
+      id: "citation-3",
+      title: "Process Event Mapping Guide",
+      source: "Documentation",
+      url: "https://cloud.google.com/chronicle/docs/ingestion/parser-extensions/process-mapping",
+    },
+    {
+      id: "citation-4",
+      title: "Windows Security Event Fields",
+      source: "Documentation",
+      url: "https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4688",
+    },
+    {
+      id: "citation-5",
+      title: "OSSF Schema Standards",
+      source: "Documentation",
+      url: "https://schema.ocsf.io/classes/process_activity",
+    },
+  ],
 };

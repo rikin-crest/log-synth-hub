@@ -17,7 +17,7 @@ import { DrawerProvider } from "@/contexts/DrawerContext";
 import NavigationBar from "@/components/NavigationBar";
 
 // Lazy load heavy components
-const ChainOfThoughts = lazy(() => import("../components/ChainOfThoughts"));
+const Citations = lazy(() => import("../components/Citations"));
 const WorkflowGraph = lazy(() => import("../components/WorkflowGraph"));
 const MappingTable = lazy(() => import("../components/MappingTable"));
 // const ReleaseNotes = lazy(() => import("../components/ReleaseNotes"));
@@ -32,6 +32,9 @@ const Dashboard = () => {
   const [agentThoughts, setAgentThoughts] = useState<AgentThoughts[]>([]);
   const [currentInvocationNumber, setCurrentInvocationNumber] = useState<number>(0);
   const [mappingData, setMappingData] = useState<Record<string, unknown>[]>([]);
+  const [citations, setCitations] = useState<
+    Array<{ id: string; title: string; source: string; url?: string }>
+  >([]);
   const [activeTab, setActiveTab] = useState(0);
   const [isThoughtsFullscreen, setIsThoughtsFullscreen] = useState(false);
   const [releaseNote, setReleaseNote] = useState("");
@@ -53,6 +56,7 @@ const Dashboard = () => {
   const handleGenerateMappings = (formData: FormData) => {
     setAgentThoughts([]);
     setMappingData([]);
+    setCitations([]);
     setCurrentInvocationNumber(0); // Reset invocation counter
 
     // Process streaming thought steps
@@ -94,6 +98,7 @@ const Dashboard = () => {
           if (result) {
             addToSessionStorage("thread_id", result.thread_id);
             setMappingData(result.output || []);
+            setCitations(result.citations || []);
           }
         },
       }
@@ -200,6 +205,7 @@ const Dashboard = () => {
         if (result) {
           addToSessionStorage("thread_id", result.thread_id);
           setMappingData(result.output || []);
+          setCitations(result.citations || []);
           toast.success("Mapping loaded successfully");
         }
       },
@@ -391,14 +397,9 @@ const Dashboard = () => {
               }}
             >
               {activeTab === 0 && (
-                <Suspense fallback={<LoadingFallback message="Loading chain of thoughts..." />}>
+                <Suspense fallback={<LoadingFallback message="Loading citations..." />}>
                   <>
-                    <ChainOfThoughts
-                      agentThoughts={agentThoughts}
-                      isProcessing={isProcessing}
-                      isFullscreen={isThoughtsFullscreen}
-                      onFullscreenClose={() => setIsThoughtsFullscreen(false)}
-                    />
+                    <Citations citations={citations} isProcessing={isProcessing} />
                   </>
                 </Suspense>
               )}

@@ -594,6 +594,7 @@ const InputSection = ({
             cursor: isProcessing ? "no-drop" : "pointer",
             position: "relative",
             overflow: "hidden",
+            border: "1px solid transparent", // Add transparent border to match outlined button height
             "&:disabled": {
               color: "#9ca3af !important",
             },
